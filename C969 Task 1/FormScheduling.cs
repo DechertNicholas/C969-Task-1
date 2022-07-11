@@ -82,7 +82,7 @@ namespace C969_Task_1
                         dateTimePickerForAppt.Enabled = state;
                         comboBoxTimeForAppt.Enabled = state;
                         comboBoxConsultant.Enabled = state;
-                        comboBoxApptType.Enabled = state;
+                        textBoxApptType.Enabled = state;
                         break;
                     }
                 case UISection.CLIENT:
@@ -149,17 +149,13 @@ namespace C969_Task_1
                 textBoxCountry.Text = null;
 
                 ToggleEditableControls(EditClient, UISection.CLIENT);
+                buttonEditClient.Enabled = false;
             }
             else
             {
                 // Client is meant to be saved now
                 try
                 {
-                    //if (!Regex.IsMatch(textBoxZip.Text, @"^\d*$"))
-                    //{
-                    //    throw new ValidationException("Zip code must only contain digits.");
-                    //}
-
                     Validations.ValidateCustomerData(new UnvalidatedCustomer
                     (
                         textBoxName.Text,
@@ -182,6 +178,10 @@ namespace C969_Task_1
                     buttonAddSaveClient.Text = "Add";
                     buttonRemoveCancelClient.Text = "Remove";
                     ToggleEditableControls(EditClient, UISection.CLIENT);
+
+                    // Refresh customer data list
+                    PopulateData();
+                    buttonEditClient.Enabled = true;
                 }
                 catch (Exception ex)
                 {
@@ -249,13 +249,10 @@ namespace C969_Task_1
 
         public void PopulateAppointmentData(Appointment appt)
         {
-            var univDateTime = DateTime.Parse(appt.Start.ToString());
-            var localDateTime = univDateTime.ToLocalTime();
-            Console.WriteLine($"UTC: {univDateTime}\nLocal: {localDateTime}");
-            dateTimePickerForAppt.Value = localDateTime;
-            Console.WriteLine($"Time Slot: {localDateTime:hh:mm tt}");
-            comboBoxTimeForAppt.SelectedItem = localDateTime.ToString("hh:mm tt");
-
+            dateTimePickerForAppt.Value = appt.Start;
+            Console.WriteLine($"Time Slot: {appt.Start:hh:mm tt}");
+            comboBoxTimeForAppt.SelectedItem = appt.Start.ToString("hh:mm tt");
+            textBoxApptType.Text = appt.Type;
         }
 
         private void dataGridViewAppts_SelectionChanged(object sender, EventArgs e)
@@ -276,6 +273,70 @@ namespace C969_Task_1
 
             PopulateCustomerData(appt.CustomerId);
             PopulateAppointmentData(appt);
+        }
+
+        private void buttonRemoveCancelClient_Click(object sender, EventArgs e)
+        {
+            if (EditClient == true)
+            {
+                // Cancel an edit
+                EditClient = false;
+
+                buttonAddSaveClient.Text = "Add";
+                buttonRemoveCancelClient.Text = "Remove";
+
+                ToggleEditableControls(EditClient, UISection.CLIENT);
+
+                // pretend to change the selection in the appointment list to refresh the data
+                dataGridViewAppts_SelectionChanged(new object(), new EventArgs());
+                buttonEditClient.Enabled = true;
+            }
+            else
+            {
+                // Button is remove
+                if (string.IsNullOrWhiteSpace(textBoxName.Text))
+                {
+                    MessageBox.Show("Cannot delete an empty user", "No user selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                var choice = MessageBox.Show("Are you sure you want to delete this user?", "Confirm delete", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+                if (choice != DialogResult.OK)
+                {
+                    return;
+                }
+
+                // this isn't the best way to select a unique customer, but it should be good enough for this
+                var customer = Customers.Where(c => c.Name == textBoxName.Text).Where(c => c.Address == textBoxAddress.Text).First();
+                var appointments = Handler.GetAppointmentsById(customer.Id);
+
+                // Check if there are any appointments for the user in the database. They'll need to be deleted
+                if (appointments.Count != 0)
+                {
+                    var apptString = "User has outstanding appointments. Confirm deletion:\n\n";
+                    foreach (var appt in appointments)
+                    {
+                        apptString += $"{appt.Type} - {appt.Start}\n";
+                    }
+
+                    choice = MessageBox.Show(apptString, "User has outstanding appointments", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+                    if (choice != DialogResult.OK)
+                    {
+                        return;
+                    }
+                }
+
+                foreach (var appt in appointments)
+                {
+                    Handler.DeleteAppointmentById(appt.AppointmentId);
+                }
+
+                Handler.DeleteCustomerById(customer.Id);
+
+                PopulateData();
+                monthCalendarAppts_DateSelected(new object { }, new DateRangeEventArgs(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd));
+            }
         }
     }
 }

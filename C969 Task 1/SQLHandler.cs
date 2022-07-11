@@ -190,11 +190,11 @@ namespace C969_Task_1
                         CustomerId = int.Parse(rdr[1].ToString()),
                         UserId = int.Parse(rdr[2].ToString()),
                         Type = rdr[3].ToString(),
-                        Start = DateTime.Parse(rdr[4].ToString()),
-                        End = DateTime.Parse(rdr[5].ToString()),
-                        CreateDate = DateTime.Parse(rdr[6].ToString()),
+                        Start = DateTime.Parse(rdr[4].ToString()).ToLocalTime(),
+                        End = DateTime.Parse(rdr[5].ToString()).ToLocalTime(),
+                        CreateDate = DateTime.Parse(rdr[6].ToString()).ToLocalTime(),
                         CreatedBy = rdr[7].ToString(),
-                        LastUpdate = DateTime.Parse(rdr[8].ToString()),
+                        LastUpdate = DateTime.Parse(rdr[8].ToString()).ToLocalTime(),
                         LastUpdateBy = rdr[9].ToString()
                     }) ;
                 }
@@ -210,6 +210,104 @@ namespace C969_Task_1
 
             Console.WriteLine($"Got {appts.Count} appointments");
             return appts;
+        }
+
+        public List<Appointment> GetAppointmentsById(int customerId)
+        {
+            var appts = new List<Appointment>();
+
+            string connStr = ConfigurationManager.ConnectionStrings["RQLDEV01"].ConnectionString;
+            var conn = new MySqlConnection(connStr);
+
+            try
+            {
+                conn.Open();
+
+                var query = $"SELECT appointmentId, customerId, userId, type, start, end, createDate, createdBy, lastUpdate, lastUpdateBy FROM appointment\n" +
+                             $"WHERE customerId = {customerId}";
+                Console.WriteLine($"Executing query: {query}");
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    appts.Add(new Appointment
+                    {
+                        AppointmentId = int.Parse(rdr[0].ToString()),
+                        CustomerId = int.Parse(rdr[1].ToString()),
+                        UserId = int.Parse(rdr[2].ToString()),
+                        Type = rdr[3].ToString(),
+                        Start = DateTime.Parse(rdr[4].ToString()).ToLocalTime(),
+                        End = DateTime.Parse(rdr[5].ToString()).ToLocalTime(),
+                        CreateDate = DateTime.Parse(rdr[6].ToString()).ToLocalTime(),
+                        CreatedBy = rdr[7].ToString(),
+                        LastUpdate = DateTime.Parse(rdr[8].ToString()).ToLocalTime(),
+                        LastUpdateBy = rdr[9].ToString()
+                    });
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            Console.WriteLine($"Got {appts.Count} appointments");
+            return appts;
+        }
+
+        public void DeleteAppointmentById(int apptId)
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["RQLDEV01"].ConnectionString;
+            var conn = new MySqlConnection(connStr);
+
+            try
+            {
+                conn.Open();
+
+                var query = $"DELETE FROM appointment WHERE appointmentId = {apptId}";
+                Console.WriteLine($"Executing query: {query}");
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            Console.WriteLine($"Deleted appointment with ID {apptId}");
+        }
+
+        public void DeleteCustomerById(int custId)
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["RQLDEV01"].ConnectionString;
+            var conn = new MySqlConnection(connStr);
+
+            try
+            {
+                conn.Open();
+
+                var query = $"DELETE FROM customer WHERE customerId = {custId}";
+                Console.WriteLine($"Executing query: {query}");
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            Console.WriteLine($"Deleted customer with ID {custId}");
         }
     }
 }

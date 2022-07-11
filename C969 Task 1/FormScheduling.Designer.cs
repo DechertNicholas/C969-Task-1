@@ -32,7 +32,6 @@ namespace C969_Task_1
             this.dataGridViewAppts = new System.Windows.Forms.DataGridView();
             this.groupBoxAppointments = new System.Windows.Forms.GroupBox();
             this.labelApptType = new System.Windows.Forms.Label();
-            this.comboBoxApptType = new System.Windows.Forms.ComboBox();
             this.labelConsultant = new System.Windows.Forms.Label();
             this.labelTime = new System.Windows.Forms.Label();
             this.labelDate = new System.Windows.Forms.Label();
@@ -69,6 +68,7 @@ namespace C969_Task_1
             this.radioButtonByWeek = new System.Windows.Forms.RadioButton();
             this.radioButtonByMonth = new System.Windows.Forms.RadioButton();
             this.monthCalendarAppts = new System.Windows.Forms.MonthCalendar();
+            this.textBoxApptType = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewAppts)).BeginInit();
             this.groupBoxAppointments.SuspendLayout();
             this.groupBoxCustomer.SuspendLayout();
@@ -97,8 +97,8 @@ namespace C969_Task_1
             // 
             // groupBoxAppointments
             // 
+            this.groupBoxAppointments.Controls.Add(this.textBoxApptType);
             this.groupBoxAppointments.Controls.Add(this.labelApptType);
-            this.groupBoxAppointments.Controls.Add(this.comboBoxApptType);
             this.groupBoxAppointments.Controls.Add(this.labelConsultant);
             this.groupBoxAppointments.Controls.Add(this.labelTime);
             this.groupBoxAppointments.Controls.Add(this.labelDate);
@@ -125,14 +125,6 @@ namespace C969_Task_1
             this.labelApptType.Size = new System.Drawing.Size(31, 13);
             this.labelApptType.TabIndex = 14;
             this.labelApptType.Text = "Type";
-            // 
-            // comboBoxApptType
-            // 
-            this.comboBoxApptType.FormattingEnabled = true;
-            this.comboBoxApptType.Location = new System.Drawing.Point(133, 132);
-            this.comboBoxApptType.Name = "comboBoxApptType";
-            this.comboBoxApptType.Size = new System.Drawing.Size(121, 21);
-            this.comboBoxApptType.TabIndex = 13;
             // 
             // labelConsultant
             // 
@@ -335,6 +327,7 @@ namespace C969_Task_1
             this.buttonRemoveCancelClient.TabIndex = 17;
             this.buttonRemoveCancelClient.Text = "Remove/Cancel";
             this.buttonRemoveCancelClient.UseVisualStyleBackColor = true;
+            this.buttonRemoveCancelClient.Click += new System.EventHandler(this.buttonRemoveCancelClient_Click);
             // 
             // buttonEditClient
             // 
@@ -454,6 +447,13 @@ namespace C969_Task_1
             this.monthCalendarAppts.TabIndex = 5;
             this.monthCalendarAppts.DateSelected += new System.Windows.Forms.DateRangeEventHandler(this.monthCalendarAppts_DateSelected);
             // 
+            // textBoxApptType
+            // 
+            this.textBoxApptType.Location = new System.Drawing.Point(133, 132);
+            this.textBoxApptType.Name = "textBoxApptType";
+            this.textBoxApptType.Size = new System.Drawing.Size(206, 20);
+            this.textBoxApptType.TabIndex = 15;
+            // 
             // FormScheduling
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -508,7 +508,6 @@ namespace C969_Task_1
         private System.Windows.Forms.ComboBox comboBoxTimeForAppt;
         private System.Windows.Forms.ComboBox comboBoxClientForAppt;
         private System.Windows.Forms.Label labelApptType;
-        private System.Windows.Forms.ComboBox comboBoxApptType;
         private System.Windows.Forms.Label labelPhoneNumber;
         private System.Windows.Forms.Label labelAddress;
         private System.Windows.Forms.Label labelFirstName;
@@ -524,5 +523,6 @@ namespace C969_Task_1
         private System.Windows.Forms.TextBox textBoxZip;
         private System.Windows.Forms.Label labelCity;
         private System.Windows.Forms.TextBox textBoxCity;
+        private System.Windows.Forms.TextBox textBoxApptType;
     }
 }
