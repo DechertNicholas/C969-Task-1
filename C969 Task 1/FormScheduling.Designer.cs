@@ -31,13 +31,14 @@ namespace C969_Task_1
         {
             this.dataGridViewAppts = new System.Windows.Forms.DataGridView();
             this.groupBoxAppointments = new System.Windows.Forms.GroupBox();
+            this.textBoxApptType = new System.Windows.Forms.TextBox();
             this.labelApptType = new System.Windows.Forms.Label();
             this.labelConsultant = new System.Windows.Forms.Label();
             this.labelTime = new System.Windows.Forms.Label();
             this.labelDate = new System.Windows.Forms.Label();
             this.labelCustomerSelect = new System.Windows.Forms.Label();
             this.comboBoxTimeForAppt = new System.Windows.Forms.ComboBox();
-            this.comboBoxClientForAppt = new System.Windows.Forms.ComboBox();
+            this.comboBoxCustomerForAppt = new System.Windows.Forms.ComboBox();
             this.comboBoxConsultant = new System.Windows.Forms.ComboBox();
             this.dateTimePickerForAppt = new System.Windows.Forms.DateTimePicker();
             this.buttonRemoveCancelAppt = new System.Windows.Forms.Button();
@@ -53,10 +54,10 @@ namespace C969_Task_1
             this.labelPhoneNumber = new System.Windows.Forms.Label();
             this.labelAddress = new System.Windows.Forms.Label();
             this.labelFirstName = new System.Windows.Forms.Label();
-            this.buttonRemoveCancelClient = new System.Windows.Forms.Button();
-            this.buttonEditClient = new System.Windows.Forms.Button();
+            this.buttonRemoveCancelCustomer = new System.Windows.Forms.Button();
+            this.buttonEditCustomer = new System.Windows.Forms.Button();
             this.textBoxPhoneNumber = new System.Windows.Forms.TextBox();
-            this.buttonAddSaveClient = new System.Windows.Forms.Button();
+            this.buttonAddSaveCustomer = new System.Windows.Forms.Button();
             this.textBoxAddress = new System.Windows.Forms.TextBox();
             this.textBoxName = new System.Windows.Forms.TextBox();
             this.menuStripScheduling = new System.Windows.Forms.MenuStrip();
@@ -68,7 +69,6 @@ namespace C969_Task_1
             this.radioButtonByWeek = new System.Windows.Forms.RadioButton();
             this.radioButtonByMonth = new System.Windows.Forms.RadioButton();
             this.monthCalendarAppts = new System.Windows.Forms.MonthCalendar();
-            this.textBoxApptType = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewAppts)).BeginInit();
             this.groupBoxAppointments.SuspendLayout();
             this.groupBoxCustomer.SuspendLayout();
@@ -104,7 +104,7 @@ namespace C969_Task_1
             this.groupBoxAppointments.Controls.Add(this.labelDate);
             this.groupBoxAppointments.Controls.Add(this.labelCustomerSelect);
             this.groupBoxAppointments.Controls.Add(this.comboBoxTimeForAppt);
-            this.groupBoxAppointments.Controls.Add(this.comboBoxClientForAppt);
+            this.groupBoxAppointments.Controls.Add(this.comboBoxCustomerForAppt);
             this.groupBoxAppointments.Controls.Add(this.comboBoxConsultant);
             this.groupBoxAppointments.Controls.Add(this.dateTimePickerForAppt);
             this.groupBoxAppointments.Controls.Add(this.buttonRemoveCancelAppt);
@@ -116,6 +116,13 @@ namespace C969_Task_1
             this.groupBoxAppointments.TabIndex = 1;
             this.groupBoxAppointments.TabStop = false;
             this.groupBoxAppointments.Text = "Appointments";
+            // 
+            // textBoxApptType
+            // 
+            this.textBoxApptType.Location = new System.Drawing.Point(133, 132);
+            this.textBoxApptType.Name = "textBoxApptType";
+            this.textBoxApptType.Size = new System.Drawing.Size(206, 20);
+            this.textBoxApptType.TabIndex = 15;
             // 
             // labelApptType
             // 
@@ -170,13 +177,13 @@ namespace C969_Task_1
             this.comboBoxTimeForAppt.Size = new System.Drawing.Size(121, 21);
             this.comboBoxTimeForAppt.TabIndex = 8;
             // 
-            // comboBoxClientForAppt
+            // comboBoxCustomerForAppt
             // 
-            this.comboBoxClientForAppt.FormattingEnabled = true;
-            this.comboBoxClientForAppt.Location = new System.Drawing.Point(6, 36);
-            this.comboBoxClientForAppt.Name = "comboBoxClientForAppt";
-            this.comboBoxClientForAppt.Size = new System.Drawing.Size(121, 21);
-            this.comboBoxClientForAppt.TabIndex = 7;
+            this.comboBoxCustomerForAppt.FormattingEnabled = true;
+            this.comboBoxCustomerForAppt.Location = new System.Drawing.Point(6, 36);
+            this.comboBoxCustomerForAppt.Name = "comboBoxCustomerForAppt";
+            this.comboBoxCustomerForAppt.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxCustomerForAppt.TabIndex = 7;
             // 
             // comboBoxConsultant
             // 
@@ -219,6 +226,7 @@ namespace C969_Task_1
             this.buttonAddSaveAppt.TabIndex = 0;
             this.buttonAddSaveAppt.Text = "Add/Save";
             this.buttonAddSaveAppt.UseVisualStyleBackColor = true;
+            this.buttonAddSaveAppt.Click += new System.EventHandler(this.buttonAddSaveAppt_Click);
             // 
             // groupBoxCustomer
             // 
@@ -231,10 +239,10 @@ namespace C969_Task_1
             this.groupBoxCustomer.Controls.Add(this.labelPhoneNumber);
             this.groupBoxCustomer.Controls.Add(this.labelAddress);
             this.groupBoxCustomer.Controls.Add(this.labelFirstName);
-            this.groupBoxCustomer.Controls.Add(this.buttonRemoveCancelClient);
-            this.groupBoxCustomer.Controls.Add(this.buttonEditClient);
+            this.groupBoxCustomer.Controls.Add(this.buttonRemoveCancelCustomer);
+            this.groupBoxCustomer.Controls.Add(this.buttonEditCustomer);
             this.groupBoxCustomer.Controls.Add(this.textBoxPhoneNumber);
-            this.groupBoxCustomer.Controls.Add(this.buttonAddSaveClient);
+            this.groupBoxCustomer.Controls.Add(this.buttonAddSaveCustomer);
             this.groupBoxCustomer.Controls.Add(this.textBoxAddress);
             this.groupBoxCustomer.Controls.Add(this.textBoxName);
             this.groupBoxCustomer.Location = new System.Drawing.Point(12, 295);
@@ -319,24 +327,25 @@ namespace C969_Task_1
             this.labelFirstName.TabIndex = 18;
             this.labelFirstName.Text = "Name (First and Last)";
             // 
-            // buttonRemoveCancelClient
+            // buttonRemoveCancelCustomer
             // 
-            this.buttonRemoveCancelClient.Location = new System.Drawing.Point(170, 185);
-            this.buttonRemoveCancelClient.Name = "buttonRemoveCancelClient";
-            this.buttonRemoveCancelClient.Size = new System.Drawing.Size(75, 23);
-            this.buttonRemoveCancelClient.TabIndex = 17;
-            this.buttonRemoveCancelClient.Text = "Remove/Cancel";
-            this.buttonRemoveCancelClient.UseVisualStyleBackColor = true;
-            this.buttonRemoveCancelClient.Click += new System.EventHandler(this.buttonRemoveCancelClient_Click);
+            this.buttonRemoveCancelCustomer.Location = new System.Drawing.Point(170, 185);
+            this.buttonRemoveCancelCustomer.Name = "buttonRemoveCancelCustomer";
+            this.buttonRemoveCancelCustomer.Size = new System.Drawing.Size(75, 23);
+            this.buttonRemoveCancelCustomer.TabIndex = 17;
+            this.buttonRemoveCancelCustomer.Text = "Remove/Cancel";
+            this.buttonRemoveCancelCustomer.UseVisualStyleBackColor = true;
+            this.buttonRemoveCancelCustomer.Click += new System.EventHandler(this.buttonRemoveCancelCustomer_Click);
             // 
-            // buttonEditClient
+            // buttonEditCustomer
             // 
-            this.buttonEditClient.Location = new System.Drawing.Point(89, 185);
-            this.buttonEditClient.Name = "buttonEditClient";
-            this.buttonEditClient.Size = new System.Drawing.Size(75, 23);
-            this.buttonEditClient.TabIndex = 16;
-            this.buttonEditClient.Text = "Edit";
-            this.buttonEditClient.UseVisualStyleBackColor = true;
+            this.buttonEditCustomer.Location = new System.Drawing.Point(89, 185);
+            this.buttonEditCustomer.Name = "buttonEditCustomer";
+            this.buttonEditCustomer.Size = new System.Drawing.Size(75, 23);
+            this.buttonEditCustomer.TabIndex = 16;
+            this.buttonEditCustomer.Text = "Edit";
+            this.buttonEditCustomer.UseVisualStyleBackColor = true;
+            this.buttonEditCustomer.Click += new System.EventHandler(this.buttonEditCustomer_Click);
             // 
             // textBoxPhoneNumber
             // 
@@ -345,15 +354,15 @@ namespace C969_Task_1
             this.textBoxPhoneNumber.Size = new System.Drawing.Size(100, 20);
             this.textBoxPhoneNumber.TabIndex = 7;
             // 
-            // buttonAddSaveClient
+            // buttonAddSaveCustomer
             // 
-            this.buttonAddSaveClient.Location = new System.Drawing.Point(7, 185);
-            this.buttonAddSaveClient.Name = "buttonAddSaveClient";
-            this.buttonAddSaveClient.Size = new System.Drawing.Size(75, 23);
-            this.buttonAddSaveClient.TabIndex = 15;
-            this.buttonAddSaveClient.Text = "Add/Save";
-            this.buttonAddSaveClient.UseVisualStyleBackColor = true;
-            this.buttonAddSaveClient.Click += new System.EventHandler(this.buttonAddSaveClient_Click);
+            this.buttonAddSaveCustomer.Location = new System.Drawing.Point(7, 185);
+            this.buttonAddSaveCustomer.Name = "buttonAddSaveCustomer";
+            this.buttonAddSaveCustomer.Size = new System.Drawing.Size(75, 23);
+            this.buttonAddSaveCustomer.TabIndex = 15;
+            this.buttonAddSaveCustomer.Text = "Add/Save";
+            this.buttonAddSaveCustomer.UseVisualStyleBackColor = true;
+            this.buttonAddSaveCustomer.Click += new System.EventHandler(this.buttonAddSaveCustomer_Click);
             // 
             // textBoxAddress
             // 
@@ -447,13 +456,6 @@ namespace C969_Task_1
             this.monthCalendarAppts.TabIndex = 5;
             this.monthCalendarAppts.DateSelected += new System.Windows.Forms.DateRangeEventHandler(this.monthCalendarAppts_DateSelected);
             // 
-            // textBoxApptType
-            // 
-            this.textBoxApptType.Location = new System.Drawing.Point(133, 132);
-            this.textBoxApptType.Name = "textBoxApptType";
-            this.textBoxApptType.Size = new System.Drawing.Size(206, 20);
-            this.textBoxApptType.TabIndex = 15;
-            // 
             // FormScheduling
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -506,15 +508,15 @@ namespace C969_Task_1
         private System.Windows.Forms.Label labelDate;
         private System.Windows.Forms.Label labelCustomerSelect;
         private System.Windows.Forms.ComboBox comboBoxTimeForAppt;
-        private System.Windows.Forms.ComboBox comboBoxClientForAppt;
+        private System.Windows.Forms.ComboBox comboBoxCustomerForAppt;
         private System.Windows.Forms.Label labelApptType;
         private System.Windows.Forms.Label labelPhoneNumber;
         private System.Windows.Forms.Label labelAddress;
         private System.Windows.Forms.Label labelFirstName;
-        private System.Windows.Forms.Button buttonRemoveCancelClient;
-        private System.Windows.Forms.Button buttonEditClient;
+        private System.Windows.Forms.Button buttonRemoveCancelCustomer;
+        private System.Windows.Forms.Button buttonEditCustomer;
         private System.Windows.Forms.TextBox textBoxPhoneNumber;
-        private System.Windows.Forms.Button buttonAddSaveClient;
+        private System.Windows.Forms.Button buttonAddSaveCustomer;
         private System.Windows.Forms.TextBox textBoxAddress;
         private System.Windows.Forms.ToolStripMenuItem oneOtherTypeToolStripMenuItem;
         private System.Windows.Forms.Label labelCountry;

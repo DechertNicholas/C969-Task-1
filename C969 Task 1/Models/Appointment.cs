@@ -24,4 +24,9 @@ namespace C969_Task_1.Models
 
         }
     }
+
+    public class UnvalidatedAppointment
+    {
+
+    }
 }

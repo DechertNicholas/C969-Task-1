@@ -10,7 +10,7 @@ namespace C969_Task_1
 {
     public static class Validations
     {
-        public static void ValidateCustomerData(UnvalidatedCustomer customer)
+        public static Customer ValidateCustomerData(UnvalidatedCustomer customer)
         {
             // no name validations other than not null, as name can be anything
             if (string.IsNullOrWhiteSpace(customer.Name))
@@ -60,6 +60,15 @@ namespace C969_Task_1
             {
                 throw new ValidationException("Country should use a two letter abbreviation (FR, US, etc)");
             }
+
+            return new Customer(
+                customer.Id,
+                customer.Name,
+                customer.PhoneNumber,
+                customer.Address,
+                customer.City,
+                int.Parse(customer.ZipCode),
+                customer.Country);
         }
     }
 }

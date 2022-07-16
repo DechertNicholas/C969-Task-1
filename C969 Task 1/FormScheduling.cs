@@ -17,16 +17,24 @@ namespace C969_Task_1
     {
         SQLHandler Handler = new SQLHandler();
         string CurrentUser = null;
-        // Store customer data locally so we don't need to keep querying the server
+        // Hours the business is open. Applies to all appointments
         List<string> OpenHours = new List<string>();
         // Updated per each consultant, contains hours available to the specific selected consultant
         BindingList<string> AvailableHours = new BindingList<string>();
+        // Store customer data locally so we don't need to keep querying the server
         List<Customer> Customers = new List<Customer>();
         List<string> CustomerNames = new List<string>();
         BindingList<Appointment> Appointments = new BindingList<Appointment>();
-        bool EditClient = false;
+
+        bool EditCustomer = false;
         bool EditAppt = false;
-        enum UISection {APPT, CLIENT, ALL}
+
+        int SelectedCustomer = 0;
+        int SelectedCustomerForAppt = 0;
+
+        int SelectedAppt = 0;
+
+        enum UISection {APPT, CUSTOMER, ALL}
 
         public FormScheduling()
         {
@@ -48,8 +56,8 @@ namespace C969_Task_1
 
         public void SetUIInitialState()
         {
-            buttonAddSaveClient.Text = "Add";
-            buttonRemoveCancelClient.Text = "Remove";
+            buttonAddSaveCustomer.Text = "Add";
+            buttonRemoveCancelCustomer.Text = "Remove";
         }
 
         public void AssignOpenHours()
@@ -78,16 +86,16 @@ namespace C969_Task_1
                     {
                         // I want these boxes to be read only until the user wants to edit the selected item, or add/delete an item
                         // Appointments
-                        comboBoxClientForAppt.Enabled = state;
+                        comboBoxCustomerForAppt.Enabled = state;
                         dateTimePickerForAppt.Enabled = state;
                         comboBoxTimeForAppt.Enabled = state;
                         comboBoxConsultant.Enabled = state;
                         textBoxApptType.Enabled = state;
                         break;
                     }
-                case UISection.CLIENT:
+                case UISection.CUSTOMER:
                     {
-                        // Clients - NOT state, since readonly will be true when control enabled state should be false
+                        // Customers - NOT state, since readonly will be true when control enabled state should be false
                         textBoxName.ReadOnly = !state;
                         textBoxPhoneNumber.ReadOnly = !state;
                         textBoxAddress.ReadOnly = !state;
@@ -99,7 +107,7 @@ namespace C969_Task_1
                 case UISection.ALL:
                     {
                         ToggleEditableControls(state, UISection.APPT);
-                        ToggleEditableControls(state, UISection.CLIENT);
+                        ToggleEditableControls(state, UISection.CUSTOMER);
                         break;
                     }
             }
@@ -117,30 +125,34 @@ namespace C969_Task_1
                 CustomerNames.Add(customer.Name);
             }
 
-            comboBoxClientForAppt.DataSource = CustomerNames;
+            comboBoxCustomerForAppt.DataSource = CustomerNames;
         }
 
         public void PopulateApptTable(DateTime startDate, DateTime endDate)
         {
             //dataGridViewAppts.DataSource = null;
             Appointments = Handler.GetAppointments(startDate, endDate);
+
             // I'm using a lambda here to select only columns I want into the dataGridVew, as it is much faster than creating a new model
             // and assigning the properties to the new model. Having the full appointment data in Appointments will still be useful,
             // since other existing properties will need to be available when an appointment is edited.
-            dataGridViewAppts.DataSource = Appointments.Select(a => new { Start = a.Start, End = a.End, Type = a.Type, CreatedBy = a.CreatedBy }).ToList();
+            dataGridViewAppts.DataSource = Appointments.Select(a => new { a.AppointmentId, a.Start, a.End, a.Type, a.CreatedBy }).ToList();
+            // Keep the appointmentId data, but don't show it
+            dataGridViewAppts.Columns["AppointmentId"].Visible = false;
         }
 
-        private void buttonAddSaveClient_Click(object sender, EventArgs e)
+        private void buttonAddSaveCustomer_Click(object sender, EventArgs e)
         {
-            if (EditClient == false)
+            if (EditCustomer == false)
             {
-                // Not editing a client, we're adding a new client
+                // Not editing a customer, we're adding a new customer
                 // The button is meant to be clicked again to save
-                EditClient = true;
+                EditCustomer = true;
 
-                buttonAddSaveClient.Text = "Save";
-                buttonRemoveCancelClient.Text = "Cancel";
+                buttonAddSaveCustomer.Text = "Save";
+                buttonRemoveCancelCustomer.Text = "Cancel";
 
+                // Clear the text boxes for data entry
                 textBoxName.Text = null;
                 textBoxPhoneNumber.Text = null;
                 textBoxAddress.Text = null;
@@ -148,16 +160,17 @@ namespace C969_Task_1
                 textBoxZip.Text = null;
                 textBoxCountry.Text = null;
 
-                ToggleEditableControls(EditClient, UISection.CLIENT);
-                buttonEditClient.Enabled = false;
+                ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+                buttonEditCustomer.Enabled = false;
             }
             else
             {
-                // Client is meant to be saved now
+                // customer is meant to be saved now
                 try
                 {
-                    Validations.ValidateCustomerData(new UnvalidatedCustomer
+                    var validatedCustomer = Validations.ValidateCustomerData(new UnvalidatedCustomer
                     (
+                        null, // ID is assigned when updating in the database
                         textBoxName.Text,
                         textBoxPhoneNumber.Text,
                         textBoxAddress.Text,
@@ -166,22 +179,16 @@ namespace C969_Task_1
                         textBoxCountry.Text
                     ));
 
-                    Handler.AddClient(
-                        textBoxName.Text,
-                        textBoxPhoneNumber.Text,
-                        textBoxAddress.Text,
-                        textBoxCity.Text,
-                        textBoxZip.Text,
-                        textBoxCountry.Text);
+                    Handler.AddCustomer(validatedCustomer, CurrentUser);
 
-                    EditClient = false;
-                    buttonAddSaveClient.Text = "Add";
-                    buttonRemoveCancelClient.Text = "Remove";
-                    ToggleEditableControls(EditClient, UISection.CLIENT);
+                    EditCustomer = false;
+                    buttonAddSaveCustomer.Text = "Add";
+                    buttonRemoveCancelCustomer.Text = "Remove";
+                    ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
 
                     // Refresh customer data list
                     PopulateData();
-                    buttonEditClient.Enabled = true;
+                    buttonEditCustomer.Enabled = true;
                 }
                 catch (Exception ex)
                 {
@@ -244,7 +251,7 @@ namespace C969_Task_1
 
             // This field is technically part of the appointment data, but it's easier to populate it here and should be the
             // only exception
-            comboBoxClientForAppt.SelectedIndex = comboBoxClientForAppt.Items.IndexOf(customer.Name);
+            comboBoxCustomerForAppt.SelectedIndex = comboBoxCustomerForAppt.Items.IndexOf(customer.Name);
         }
 
         public void PopulateAppointmentData(Appointment appt)
@@ -259,15 +266,15 @@ namespace C969_Task_1
         {
             if (dataGridViewAppts.SelectedRows.Count == 0)
             {
+                // This happens sometimes, but isn't a cause for alarm
                 Console.WriteLine("DGV Row is null, this is expected on first startup (but may be unexpected if this happens later!)");
                 return;
             }
+
+            // Multiselect should not be allowed, so the selected row will always be the first
             var row = dataGridViewAppts.SelectedRows[0];
-            var apptTime = DateTime.Parse(row.Cells["Start"].Value.ToString());
-            var consultant = row.Cells["CreatedBy"].Value.ToString();
-            // I use a lambda here in place of a foreach loop to find which appointment in the appointments collections has a matching start time
-            // Since no two appointments should overlap, this value should be unique
-            var appt = Appointments.Where(a => a.Start == apptTime).Where(a => a.CreatedBy == consultant).First();
+
+            var appt = Appointments.Where(a => a.AppointmentId == int.Parse(row.Cells["AppointmentId"].Value.ToString())).First();
             
             Console.WriteLine($"Got customerId: {appt.CustomerId}");
 
@@ -275,21 +282,21 @@ namespace C969_Task_1
             PopulateAppointmentData(appt);
         }
 
-        private void buttonRemoveCancelClient_Click(object sender, EventArgs e)
+        private void buttonRemoveCancelCustomer_Click(object sender, EventArgs e)
         {
-            if (EditClient == true)
+            if (EditCustomer == true)
             {
                 // Cancel an edit
-                EditClient = false;
+                EditCustomer = false;
 
-                buttonAddSaveClient.Text = "Add";
-                buttonRemoveCancelClient.Text = "Remove";
+                buttonAddSaveCustomer.Text = "Add";
+                buttonRemoveCancelCustomer.Text = "Remove";
 
-                ToggleEditableControls(EditClient, UISection.CLIENT);
+                ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
 
                 // pretend to change the selection in the appointment list to refresh the data
                 dataGridViewAppts_SelectionChanged(new object(), new EventArgs());
-                buttonEditClient.Enabled = true;
+                buttonEditCustomer.Enabled = true;
             }
             else
             {
@@ -336,6 +343,124 @@ namespace C969_Task_1
 
                 PopulateData();
                 monthCalendarAppts_DateSelected(new object { }, new DateRangeEventArgs(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd));
+            }
+        }
+
+        private void buttonEditCustomer_Click(object sender, EventArgs e)
+        {
+            if (EditCustomer == false)
+            {
+                // Not editing a customer, we're starting to edit a customer
+                // Save will need to be clicked to finish
+                EditCustomer = true;
+
+                buttonAddSaveCustomer.Text = "Save";
+                buttonRemoveCancelCustomer.Text = "Cancel";
+
+                ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+                buttonEditCustomer.Enabled = false;
+            }
+            else
+            {
+                // customer is meant to be saved now
+                try
+                {
+                    var customer = new UnvalidatedCustomer
+                    (
+                        null,
+                        textBoxName.Text,
+                        textBoxPhoneNumber.Text,
+                        textBoxAddress.Text,
+                        textBoxCity.Text,
+                        textBoxZip.Text,
+                        textBoxCountry.Text
+                    );
+
+                    var validatedCustomer = Validations.ValidateCustomerData(customer);
+
+                    Handler.UpdateCustomer(validatedCustomer);
+
+                    EditCustomer = false;
+                    buttonAddSaveCustomer.Text = "Add";
+                    buttonRemoveCancelCustomer.Text = "Remove";
+                    ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+
+                    // Refresh customer data list
+                    PopulateData();
+                    buttonEditCustomer.Enabled = true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Validation Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+
+                }
+            }
+        }
+
+        private void buttonAddSaveAppt_Click(object sender, EventArgs e)
+        {
+            if (EditAppt == false)
+            {
+                // Not editing an appointment, we're adding a new appointment
+                // The button is meant to be clicked again to save
+                EditAppt = true;
+
+                buttonAddSaveAppt.Text = "Save";
+                buttonRemoveCancelAppt.Text = "Cancel";
+
+                comboBoxCustomerForAppt.SelectedItem = null;
+                dateTimePickerForAppt.Value = DateTime.Today;
+                comboBoxTimeForAppt.SelectedItem = null;
+                comboBoxConsultant.SelectedItem = null;
+                textBoxApptType.Text = null;
+
+                ToggleEditableControls(EditAppt, UISection.APPT);
+                buttonEditAppt.Enabled = false;
+            }
+            else
+            {
+                // Appointment is meant to be saved now
+                try
+                {
+                    Validations.ValidateCustomerData(new UnvalidatedCustomer
+                    (
+                        null,
+                        textBoxName.Text,
+                        textBoxPhoneNumber.Text,
+                        textBoxAddress.Text,
+                        textBoxCity.Text,
+                        textBoxZip.Text,
+                        textBoxCountry.Text
+                    ));
+
+                    Handler.AddCustomer(
+                        textBoxName.Text,
+                        textBoxPhoneNumber.Text,
+                        textBoxAddress.Text,
+                        textBoxCity.Text,
+                        textBoxZip.Text,
+                        textBoxCountry.Text);
+
+                    EditCustomer = false;
+                    buttonAddSaveCustomer.Text = "Add";
+                    buttonRemoveCancelCustomer.Text = "Remove";
+                    ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+
+                    // Refresh customer data list
+                    PopulateData();
+                    buttonEditCustomer.Enabled = true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Validation Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+
+                }
             }
         }
     }

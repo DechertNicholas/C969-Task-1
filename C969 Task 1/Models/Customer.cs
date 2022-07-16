@@ -6,9 +6,13 @@ using System.Threading.Tasks;
 
 namespace C969_Task_1.Models
 {
+    /// <summary>
+    /// A consolidated Customer class containing all the information relavent to the customer, even
+    /// if the information is separate from the database model. Meant for general use in the program.
+    /// </summary>
     public class Customer
     {
-        public int Id;
+        public int? Id;
         public string Name;
         public string PhoneNumber;
         public string Address;
@@ -16,7 +20,7 @@ namespace C969_Task_1.Models
         public int ZipCode;
         public string Country;
 
-        public Customer(int id, string name, string phoneNumber, string address, string city, int zipCode, string country)
+        public Customer(int? id, string name, string phoneNumber, string address, string city, int zipCode, string country)
         {
             Id = id;
             Name = name;
@@ -28,8 +32,12 @@ namespace C969_Task_1.Models
         }
     }
 
+    /// <summary>
+    /// An unvalidated version of the Customer class. Meant to be used for validation and converted into a validated Customer class.
+    /// </summary>
     public class UnvalidatedCustomer
     {
+        public int? Id;
         public string Name;
         public string PhoneNumber;
         public string Address;
@@ -37,8 +45,9 @@ namespace C969_Task_1.Models
         public string ZipCode;
         public string Country;
 
-        public UnvalidatedCustomer(string name, string phoneNumber, string address, string city, string zipCode, string country)
+        public UnvalidatedCustomer(int? id, string name, string phoneNumber, string address, string city, string zipCode, string country)
         {
+            Id = id;
             Name = name;
             PhoneNumber = phoneNumber;
             Address = address;
@@ -48,6 +57,9 @@ namespace C969_Task_1.Models
         }
     }
 
+    /// <summary>
+    /// A customer model as it exists in the MySQL database. Meant for interfacing with the customer table in the MySQL database.
+    /// </summary>
     public class DBCustomer
     {
         public int Id;
