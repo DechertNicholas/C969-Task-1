@@ -103,8 +103,11 @@
     <Compile Include="FormScheduling.Designer.cs">
       <DependentUpon>FormScheduling.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Address.cs" />
     <Compile Include="Models\Appointment.cs" />
+    <Compile Include="Models\City.cs" />
     <Compile Include="Models\Consultant.cs" />
+    <Compile Include="Models\Country.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

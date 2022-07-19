@@ -22,7 +22,7 @@ namespace C969_Task_1
         // Updated per each consultant, contains hours available to the specific selected consultant
         BindingList<string> AvailableHours = new BindingList<string>();
         // Store customer data locally so we don't need to keep querying the server
-        List<Customer> Customers = new List<Customer>();
+        List<OldCustomer> Customers = new List<OldCustomer>();
         List<string> CustomerNames = new List<string>();
         BindingList<Appointment> Appointments = new BindingList<Appointment>();
 
@@ -118,7 +118,7 @@ namespace C969_Task_1
             var consultants = Handler.GetConsultants();
             comboBoxConsultant.DataSource = consultants;
 
-            Customers = Handler.GetCustomers();
+            Customers = Handler.GetAllCustomers();
 
             foreach (var customer in Customers)
             {
