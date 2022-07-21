@@ -51,6 +51,303 @@ namespace C969_Task_1
             }
         }
 
+        // countries
+        public List<Country> GetAllCountries()
+        {
+            var results = new List<Country>();
+
+            var conn = GetConnection();
+            try
+            {
+                conn.Open();
+
+                var query = "SELECT * FROM country";
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    results.Add(new Country(
+                        int.Parse(rdr[0].ToString()), // id
+                        rdr[1].ToString(), // name
+                        DateTime.ParseExact(rdr[2].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        rdr[3].ToString(),
+                        DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        rdr[5].ToString())
+                    );
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return results;
+        }
+
+        public Country GetCountryById(int id)
+        {
+            var country = new Country();
+
+            var conn = GetConnection();
+            try
+            {
+                conn.Open();
+
+                var query = $"SELECT * FROM country WHERE countryId = {id}";
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    country.CountryId = int.Parse(rdr[0].ToString()); // id
+                    country.CountryName = rdr[1].ToString(); // name
+                    country.CreateDate = DateTime.ParseExact(rdr[2].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    country.CreatedBy = rdr[3].ToString();
+                    country.LastUpdate = DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    country.LastUpdateBy = rdr[5].ToString();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return country;
+        }
+
+        public Country AddCountry(Country country, string user)
+        {
+            var conn = GetConnection();
+            try
+            {
+                var countries = GetAllCountries();
+                country.CountryId = countries.Count == 0 ? 1 : countries.Last().CountryId + 1;
+                var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+                var query = $"INSERT INTO country VALUES ({country.CountryId}, '{country.CountryName}', '{date}', '{user}', '{date}', '{user}')";
+
+                Console.WriteLine($"Executing Query:\n{query}");
+
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            return country;
+        }
+
+        // cities
+        public List<City> GetAllCities()
+        {
+            var results = new List<City>();
+
+            var conn = GetConnection();
+            try
+            {
+                conn.Open();
+
+                var query = "SELECT * FROM city";
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    results.Add(new City(
+                        int.Parse(rdr[0].ToString()), // id
+                        rdr[1].ToString(), // name
+                        int.Parse(rdr[2].ToString()), // countryId
+                        DateTime.ParseExact(rdr[3].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        rdr[4].ToString(),
+                        DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        rdr[6].ToString())
+                    );
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return results;
+        }
+
+        public City GetCityById(int id)
+        {
+            var city = new City();
+
+            var conn = GetConnection();
+            try
+            {
+                conn.Open();
+
+                var query = $"SELECT * FROM city WHERE cityId = {id}";
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    city.CityId = int.Parse(rdr[0].ToString()); // id
+                    city.CityName = rdr[1].ToString(); // name
+                    city.CountryId = int.Parse(rdr[2].ToString()); // countryId
+                    city.CreateDate = DateTime.ParseExact(rdr[3].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    city.CreatedBy = rdr[4].ToString();
+                    city.LastUpdate = DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    city.LastUpdateBy = rdr[6].ToString();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return city;
+        }
+
+        public City AddCity(City city, string user)
+        {
+            var conn = GetConnection();
+            try
+            {
+                var cities = GetAllCities();
+                city.CityId = cities.Count == 0 ? 1 : cities.Last().CityId + 1;
+                var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+                var query = $"INSERT INTO city VALUES ({city.CityId}, '{city.CityName}', {city.CountryId}, '{date}', '{user}', '{date}', '{user}')";
+
+                Console.WriteLine($"Executing Query:\n{query}");
+
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            return city;
+        }
+
+        // addresses
+        public List<Address> GetAllAddresses()
+        {
+            var results = new List<Address>();
+
+            var conn = GetConnection();
+            try
+            {
+                conn.Open();
+
+                var query = "SELECT * FROM address";
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    results.Add(new Address(
+                        int.Parse(rdr[0].ToString()), // id
+                        rdr[1].ToString(), // name
+                        int.Parse(rdr[2].ToString()), // cityId
+                        rdr[3].ToString(), // postal code
+                        rdr[4].ToString(), // phone
+                        DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        rdr[6].ToString(),
+                        DateTime.ParseExact(rdr[7].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        rdr[8].ToString())
+                    );
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return results;
+        }
+
+        public Address GetAddressById(int id)
+        {
+            var address = new Address();
+
+            var conn = GetConnection();
+            try
+            {
+                conn.Open();
+
+                var query = $"SELECT * FROM address WHERE addressId = {id}";
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    int.Parse(rdr[0].ToString()); // id
+                    rdr[1].ToString(); // name
+                    int.Parse(rdr[2].ToString()); // cityId
+                    rdr[3].ToString(); // postal code
+                    rdr[4].ToString(); // phone
+                    DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    rdr[6].ToString();
+                    DateTime.ParseExact(rdr[7].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    rdr[8].ToString();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return address;
+        }
+
+        public Address AddAddress(Address address, string user)
+        {
+            var conn = GetConnection();
+            try
+            {
+                var addresses = GetAllAddresses();
+                address.AddressId = addresses.Count == 0 ? 1 : addresses.Last().AddressId + 1;
+                var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+                var query = $"INSERT INTO address VALUES ({address.AddressId}, '{address.AddressName}', '{address.Address2}', {address.CityId}, '{address.PostalCode}', '{address.Phone}', '{date}', '{user}', '{date}', '{user}')";
+
+                Console.WriteLine($"Executing Query:\n{query}");
+
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            return address;
+        }
+
+        // customers
         public List<Customer> GetAllCustomers()
         {
             var results = new List<Customer>();
@@ -104,7 +401,7 @@ namespace C969_Task_1
                 while (rdr.Read())
                 {
                     customer.Id = int.Parse(rdr[0].ToString()); // id
-                    customer.Name = rdr[1].ToString(); // name
+                    customer.CustomerName = rdr[1].ToString(); // name
                     customer.AddressId = int.Parse(rdr[2].ToString()); // address id
                     customer.Active = int.Parse(rdr[3].ToString()); // active (0, 1)
                     customer.CreateDate = DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
@@ -125,90 +422,43 @@ namespace C969_Task_1
             return customer;
         }
 
-
-
-        public List<Country> GetAllCountries()
+        public Customer AddCustomer(Customer customer, Address address, City city, Country country, string user)
         {
-            var results = new List<Country>();
-
             var conn = GetConnection();
             try
             {
-                conn.Open();
+                // a country name is globally unique, so checking by name should only ever find one unique result, or nothing
+                var dbCountry = GetAllCountries().Where(c => c.CountryName == country.CountryName).FirstOrDefault();
+                dbCountry ??= AddCountry(country, user);
 
-                var query = "SELECT * FROM country";
-                var cmd = new MySqlCommand(query, conn);
-                var rdr = cmd.ExecuteReader();
-                while (rdr.Read())
+                // city names can be duplicated once per country (in this implementation), so if one if found, it must have an associated countryId
+                // the city name and country id will create a unique composite key
+                var dbCity = GetAllCities().Where(c => c.CityName == city.CityName).Where(c => c.CountryId == dbCountry.CountryId).FirstOrDefault();
+                dbCity ??= AddCity(city, user);
+
+                // address is the same as city above. A composite key of address name and city id will be unique
+                var dbAddress = GetAllAddresses().Where(a => a.AddressName == address.AddressName).Where(a => a.CityId == dbCity.CityId).FirstOrDefault();
+                dbAddress ??= AddAddress(address, user);
+
+                // customer will be the same as address, with a composite key of name and addressId
+                var dbCustomer = GetAllCustomers().Where(c => c.CustomerName == customer.CustomerName).Where(c => c.AddressId == dbAddress.AddressId).FirstOrDefault();
+                if (dbCustomer != null)
                 {
-                    results.Add(new Country(
-                        int.Parse(rdr[0].ToString()), // id
-                        rdr[1].ToString(), // name
-                        DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                        rdr[5].ToString(),
-                        DateTime.ParseExact(rdr[6].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                        rdr[7].ToString())
-                    );
+                    throw new DuplicateRecordException("Customer is already present in the database:\n" +
+                        $"Name: {customer.CustomerName}\nPhone: {address.Phone}\nAddress: {address.AddressName}\nCity: {city.CityName}\n" +
+                        $"Zip: {address.PostalCode}\nCountry: {country.CountryName}");
                 }
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-            return results;
-        }
 
-        public Country GetCountryById(int id)
-        {
-            var country = new Country();
-
-            var conn = GetConnection();
-            try
-            {
-                conn.Open();
-
-                var query = $"SELECT * FROM country WHERE countryId = {id}";
-                var cmd = new MySqlCommand(query, conn);
-                var rdr = cmd.ExecuteReader();
-                while (rdr.Read())
-                {
-                    country.CountryId = int.Parse(rdr[0].ToString()); // id
-                    country.CountryName = rdr[1].ToString(); // name
-                    country.CreateDate = DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    country.CreatedBy = rdr[5].ToString();
-                    country.LastUpdate = DateTime.ParseExact(rdr[6].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    country.LastUpdateBy = rdr[7].ToString();
-                }
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-            return country;
-        }
-
-        public void AddCountry(Country country, string user)
-        {
-            var conn = GetConnection();
-            try
-            {
-                var countries = GetAllCountries();
-                var countryId = countries.Count == 0 ? 1 : countries.Last().CountryId + 1;
+                var customers = GetAllCustomers();
+                customer.Id = customers.Count == 0 ? 1 : customers.Last().Id + 1;
                 var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var query = $"INSERT INTO country VALUES ({countryId}, '{country.CountryName}', '{date}', '{user}', '{date}', '{user}')";
+                var query = $"INSERT INTO customer VALUES ({customer.Id}, '{customer.CustomerName}', {customer.AddressId}, {customer.Active}, '{date}', '{user}', '{date}', '{user}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
                 var cmd = new MySqlCommand(query, conn);
                 var result = cmd.ExecuteNonQuery();
+
             }
             catch (MySqlException ex)
             {
@@ -218,93 +468,20 @@ namespace C969_Task_1
             {
                 conn.Close();
             }
+
+            return customer;
         }
 
-        // Needs fixing
-        public void AddCustomer(Customer customer, Address address, City city, Country country, string user)
+        public Customer UpdateCustomer(Customer updatedCustomer, Customer originalCustomer)
         {
+            var conn = GetConnection();
             try
             {
-                var countries = GetAllCountries();
-                var dbCountry = countries.Where(c => c.CountryName == country.CountryName)
-                    .FirstOrDefault();
-                if (dbCountry == null)
-                {
-                    AddCountry(country, user);
-                }
+                conn.Open();
 
-
-
-                // check for customer table duplication
-                var query = @$"SELECT customer.customerName, address.phone, address.address, city.city, address.postalCode, country.country FROM customer
-                            INNER JOIN address ON customer.addressId = address.addressId
-                            INNER JOIN city on city.cityId = address.cityId
-                            INNER JOIN country on city.countryId = country.countryId
-                            WHERE customerName = '{customer.CustomerName}'
-                            AND address.phone = '{address.Phone}'
-                            AND address.address = '{address.AddressName}'
-                            AND city.city = '{city.CityName}'
-                            AND address.postalCode = '{address.PostalCode}'
-                            AND country.country = '{country.CountryName}'";
-                var cmd = new MySqlCommand(query, conn);
-                var rdr = cmd.ExecuteReader();
-                if (rdr.HasRows)
-                {
-                    throw new DuplicateRecordException("OldCustomer is already present in the database:\n" +
-                                                      $"Name: {customer.CustomerName}\nPhone: {address.Phone}\nAddress: {address.AddressName}\nCity: {city.CityName}\n" +
-                                                      $"Zip: {address.PostalCode}\nCountry: {country.CountryName}");
-                }
-
-                // TODO: extact this?
-                var countryId = AddOrGetCountryId(customer, user);
-                var cityId = AddOrGetCityId(customer, user, countryId);
-
-                // ------------- Address -------------
-
-                // Add the address
-                // get the highest ID from the table
-                query = "SELECT MAX(addressId) FROM address";
-                cmd = new MySqlCommand(query, conn);
-                rdr = cmd.ExecuteReader();
-                int addressId = 0; // initialize to something
-                while (rdr.Read())
-                {
-                    addressId = int.Parse(rdr[0].ToString());
-                }
-                addressId = addressId++;
-
-                // DB uses an address 2, but we don't
-                var address2 = "";
-                
-
-                // Address insert is done Second, needs cityId
-                query = $"INSERT INTO address VALUES ({addressId}, '{customer.Address}', '{address2}', {cityId}, '{customer.ZipCode}', '{customer.PhoneNumber}', '{createDate}', '{createdBy}', '{lastUpdate}', '{updatedBy}')";
-                cmd = new MySqlCommand(query, conn);
-                cmd.ExecuteNonQuery();
-
-
-                // ------------- OldCustomer -------------
-
-                // don't use magic numbers or strings
-                var active = 1;
-
-                // get the highest ID from the table
-                query = "SELECT MAX(customerId) FROM customer";
-                cmd = new MySqlCommand(query, conn);
-                rdr = cmd.ExecuteReader();
-                int customerId = 0; // initialize to something
-                while (rdr.Read())
-                {
-                    customerId = int.Parse(rdr[0].ToString());
-                }
-
-                // Increment to the new customer ID
-                customer.Id = customerId++;
-
-                // OldCustomer insert is done last, needs addressId
-                query = $"INSERT INTO customer VALUES ({customer.Id}, '{customer.Name}', {addressId}, {active}, '{createDate}', '{createdBy}', '{lastUpdate}', '{updatedBy}')";
-                cmd = new MySqlCommand(query, conn);
-                cmd.ExecuteNonQuery();
+                // any part of customer could have changed, from name to address to city to country
+                // this logic should go into FormScheduling instead. These update functions will be for pure updates
+                // use bit flags to check if country, city, or address changed, as those will need changes in the classes that rely on those keys
             }
             catch (MySqlException ex)
             {
@@ -538,169 +715,10 @@ namespace C969_Task_1
             Console.WriteLine($"Deleted customer with ID {custId}");
         }
 
-        public void UpdateCustomer(OldCustomer customer)
-        {
-            var conn = GetConnection();
-            try
-            {
-                conn.Open();
-
-                // check for customer table duplication
-                var query = @$"SELECT customer.customerName, address.phone, address.address, city.city, address.postalCode, country.country FROM customer
-                            INNER JOIN address ON customer.addressId = address.addressId
-                            INNER JOIN city on city.cityId = address.cityId
-                            INNER JOIN country on city.countryId = country.countryId
-                            WHERE customerName = '{customer.Name}'
-                            AND address.phone = '{customer.PhoneNumber}'
-                            AND address.address = '{customer.Address}'
-                            AND city.city = '{customer.City}'
-                            AND address.postalCode = '{customer.ZipCode}'
-                            AND country.country = '{customer.Country}'";
-                var cmd = new MySqlCommand(query, conn);
-                var rdr = cmd.ExecuteReader();
-                if (rdr.HasRows)
-                {
-                    throw new DuplicateRecordException("OldCustomer is already present in the database:\n" +
-                                                      $"Name: {customer.Name}\nPhone: {customer.PhoneNumber}\nAddress: {customer.Address}\nCity: {customer.City}\n" +
-                                                      $"Zip: {customer.ZipCode}\nCountry: {customer.Country}");
-                }
-
-                // get the highest ID from the table
-                query = "SELECT MAX(customerId) FROM customer";
-                cmd = new MySqlCommand(query, conn);
-                rdr = cmd.ExecuteReader();
-                int id = 1; // initialize to something
-                while (rdr.Read())
-                {
-                    id = int.Parse(rdr[0].ToString());
-                }
-
-                id++;
-
-                query = $"INSERT INTO customer VALUES ('{id}, '{customer.Name}')";
-                cmd = new MySqlCommand(query, conn);
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-        }
 
         public void GetAppointmentsByConsultantId(int consultantId)
         {
 
-        }
-
-        private int AddOrGetCountryId(OldCustomer customer, string user)
-        {
-            var conn = GetConnection();
-            int countryId = 0; // initialize to something
-
-            try
-            {
-                var createDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var lastUpdate = createDate;
-                var createdBy = user;
-                var updatedBy = createdBy;
-
-                // ------------- Country -------------
-                // Country has the potential to exist already
-
-                var query = $"SELECT countryId FROM country WHERE country = {customer.Country}";
-                var cmd = new MySqlCommand(query, conn);
-                var result = cmd.ExecuteScalar();
-
-                // query will either return a number to be used later, or will add a new entry to be used
-                if (result == null)
-                {
-                    // country doesn't exist yet, so add it
-                    query = "SELECT MAX(countryId) FROM country";
-                    cmd = new MySqlCommand(query, conn);
-                    result = cmd.ExecuteScalar();
-                    if (result == null)
-                    {
-                        // no country is present yet in the database
-                        result = 1;
-                    }
-                    else
-                    {
-                        result = int.Parse(result.ToString()) + 1;
-                    }
-
-                    query = $"INSERT INTO country VALUES ({int.Parse(result.ToString())}, '{customer.Country}', '{createDate}', '{createdBy}', '{lastUpdate}', '{updatedBy}')";
-                    cmd = new MySqlCommand(query, conn);
-                    cmd.ExecuteNonQuery();
-                }
-                countryId = int.Parse(result.ToString());
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-
-            return countryId;
-        }
-
-        private int AddOrGetCityId(OldCustomer customer, string user, int countryId)
-        {
-            var conn = GetConnection();
-            var cityId = 0; // initialize to something
-            try
-            {
-                var createDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var lastUpdate = createDate;
-                var createdBy = user;
-                var updatedBy = createdBy;
-
-                // ------------- City -------------
-                // City has the potential to exist already
-
-                var query = $"SELECT cityId FROM city WHERE city = '{customer.City}' AND countryId = {countryId}";
-                var cmd = new MySqlCommand(query, conn);
-                var result = cmd.ExecuteScalar();
-
-                // query will either return a number to be used later, or will add a new entry to be used
-                if (result == null)
-                {
-                    // city doesn't exist yet, so add it
-                    query = "SELECT MAX(cityId) FROM city";
-                    cmd = new MySqlCommand(query, conn);
-                    result = cmd.ExecuteScalar();
-                    if (result == null)
-                    {
-                        // no city is present yet in the datbase
-                        result = 1;
-                    }
-                    else
-                    {
-                        result = int.Parse(result.ToString()) + 1;
-                    }
-
-                    query = $"INSERT INTO city VALUES ({int.Parse(result.ToString())}, '{customer.City}', {countryId}, '{createDate}', '{createdBy}', '{lastUpdate}', '{updatedBy}')";
-                    cmd = new MySqlCommand(query, conn);
-                    cmd.ExecuteNonQuery();
-                }
-                cityId = int.Parse(result.ToString());
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-
-            return cityId;
-            
         }
     }
 }

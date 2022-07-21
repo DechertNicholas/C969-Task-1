@@ -85,4 +85,22 @@ namespace C969_Task_1.Models
             LastUpdateBy = lastUpdateBy;
         }
     }
+
+    public class ConsolidatedCustomer
+    {
+        Customer Customer;
+        Address Address;
+        City City;
+        Country Country;
+
+        public ConsolidatedCustomer(Customer customer, Address address, City city, Country country)
+        {
+            Customer = customer;
+            Address = address;
+            City = city;
+            Country = country;
+        }
+
+
+    }
 }
