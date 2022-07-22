@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using C969_Task_1.Models;
 using System.ComponentModel;
 using System.Globalization;
+using MySql.Data.Types;
 
 namespace C969_Task_1
 {
@@ -69,9 +70,9 @@ namespace C969_Task_1
                     results.Add(new Country(
                         int.Parse(rdr[0].ToString()), // id
                         rdr[1].ToString(), // name
-                        DateTime.ParseExact(rdr[2].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        (DateTime)rdr[2],
                         rdr[3].ToString(),
-                        DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        (DateTime)rdr[4],
                         rdr[5].ToString())
                     );
                 }
@@ -127,8 +128,7 @@ namespace C969_Task_1
             {
                 var countries = GetAllCountries();
                 country.CountryId = countries.Count == 0 ? 1 : countries.Last().CountryId + 1;
-                var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var query = $"INSERT INTO country VALUES ({country.CountryId}, '{country.CountryName}', '{date}', '{user}', '{date}', '{user}')";
+                var query = $"INSERT INTO country VALUES ({country.CountryId}, '{country.CountryName}', '{country.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{country.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -166,9 +166,9 @@ namespace C969_Task_1
                         int.Parse(rdr[0].ToString()), // id
                         rdr[1].ToString(), // name
                         int.Parse(rdr[2].ToString()), // countryId
-                        DateTime.ParseExact(rdr[3].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        (DateTime)rdr[3],
                         rdr[4].ToString(),
-                        DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        (DateTime)rdr[5],
                         rdr[6].ToString())
                     );
                 }
@@ -225,8 +225,8 @@ namespace C969_Task_1
             {
                 var cities = GetAllCities();
                 city.CityId = cities.Count == 0 ? 1 : cities.Last().CityId + 1;
-                var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var query = $"INSERT INTO city VALUES ({city.CityId}, '{city.CityName}', {city.CountryId}, '{date}', '{user}', '{date}', '{user}')";
+
+                var query = $"INSERT INTO city VALUES ({city.CityId}, '{city.CityName}', {city.CountryId}, '{city.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{city.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -263,13 +263,13 @@ namespace C969_Task_1
                     results.Add(new Address(
                         int.Parse(rdr[0].ToString()), // id
                         rdr[1].ToString(), // name
-                        int.Parse(rdr[2].ToString()), // cityId
-                        rdr[3].ToString(), // postal code
-                        rdr[4].ToString(), // phone
-                        DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                        rdr[6].ToString(),
-                        DateTime.ParseExact(rdr[7].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                        rdr[8].ToString())
+                        int.Parse(rdr[3].ToString()), // cityId - skip to entry 3 here, as address2 is not used
+                        rdr[4].ToString(), // postal code
+                        rdr[5].ToString(), // phone
+                        (DateTime)rdr[6],
+                        rdr[7].ToString(),
+                        (DateTime)rdr[8],
+                        rdr[9].ToString())
                     );
                 }
             }
@@ -327,8 +327,8 @@ namespace C969_Task_1
             {
                 var addresses = GetAllAddresses();
                 address.AddressId = addresses.Count == 0 ? 1 : addresses.Last().AddressId + 1;
-                var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var query = $"INSERT INTO address VALUES ({address.AddressId}, '{address.AddressName}', '{address.Address2}', {address.CityId}, '{address.PostalCode}', '{address.Phone}', '{date}', '{user}', '{date}', '{user}')";
+
+                var query = $"INSERT INTO address VALUES ({address.AddressId}, '{address.AddressName}', '{address.Address2}', {address.CityId}, '{address.PostalCode}', '{address.Phone}', '{address.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{address.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -360,16 +360,17 @@ namespace C969_Task_1
                 var query = "SELECT * FROM customer";
                 var cmd = new MySqlCommand(query, conn);
                 var rdr = cmd.ExecuteReader();
+                var customer = new Customer();
                 while (rdr.Read())
                 {
                     results.Add(new Customer(
                         int.Parse(rdr[0].ToString()), // id
                         rdr[1].ToString(), // name
                         int.Parse(rdr[2].ToString()), // address id
-                        int.Parse(rdr[3].ToString()), // active (0, 1)
-                        DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        (bool)rdr[3], // active (0, 1)
+                        (DateTime)rdr[4],
                         rdr[5].ToString(),
-                        DateTime.ParseExact(rdr[6].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                        (DateTime)rdr[6],
                         rdr[7].ToString())
                     );
                 }
@@ -403,7 +404,7 @@ namespace C969_Task_1
                     customer.Id = int.Parse(rdr[0].ToString()); // id
                     customer.CustomerName = rdr[1].ToString(); // name
                     customer.AddressId = int.Parse(rdr[2].ToString()); // address id
-                    customer.Active = int.Parse(rdr[3].ToString()); // active (0, 1)
+                    customer.Active = (bool)rdr[3]; // active (0, 1)
                     customer.CreateDate = DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
                     customer.CreatedBy = rdr[5].ToString();
                     customer.LastUpdate = DateTime.ParseExact(rdr[6].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
@@ -422,11 +423,20 @@ namespace C969_Task_1
             return customer;
         }
 
-        public Customer AddCustomer(Customer customer, Address address, City city, Country country, string user)
+        public Customer AddCustomer(Validations.CustomerValidationSet customerSet, string user)
         {
             var conn = GetConnection();
+            var nowDate = DateTime.UtcNow;
+            // transform the customerSet into the individual classes. Using 0 for the IDs as a placeholder, as no ID should ever be 0 in the database
+            var country = new Country(0, customerSet.Country, nowDate, user, nowDate, user);
+            var city = new City(0, customerSet.City, 0, nowDate, user, nowDate, user);
+            var address = new Address(0, customerSet.Address, 0, customerSet.ZipCode, customerSet.PhoneNumber, nowDate, user, nowDate, user);
+            var customer = new Customer(0, customerSet.Name, 0, true, nowDate, user, nowDate, user);
+
             try
             {
+                // all fields could potentially be new when adding a customer, so each needs to be checked.
+
                 // a country name is globally unique, so checking by name should only ever find one unique result, or nothing
                 var dbCountry = GetAllCountries().Where(c => c.CountryName == country.CountryName).FirstOrDefault();
                 dbCountry ??= AddCountry(country, user);
@@ -451,8 +461,8 @@ namespace C969_Task_1
 
                 var customers = GetAllCustomers();
                 customer.Id = customers.Count == 0 ? 1 : customers.Last().Id + 1;
-                var date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var query = $"INSERT INTO customer VALUES ({customer.Id}, '{customer.CustomerName}', {customer.AddressId}, {customer.Active}, '{date}', '{user}', '{date}', '{user}')";
+
+                var query = $"INSERT INTO customer VALUES ({customer.Id}, '{customer.CustomerName}', {customer.AddressId}, {customer.Active}, '{customer.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{customer.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -472,16 +482,18 @@ namespace C969_Task_1
             return customer;
         }
 
-        public Customer UpdateCustomer(Customer updatedCustomer, Customer originalCustomer)
+        public void DeleteCustomerById(int custId)
         {
             var conn = GetConnection();
+
             try
             {
                 conn.Open();
 
-                // any part of customer could have changed, from name to address to city to country
-                // this logic should go into FormScheduling instead. These update functions will be for pure updates
-                // use bit flags to check if country, city, or address changed, as those will need changes in the classes that rely on those keys
+                var query = $"DELETE FROM customer WHERE customerId = {custId}";
+                Console.WriteLine($"Executing query: {query}");
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
             }
             catch (MySqlException ex)
             {
@@ -491,9 +503,40 @@ namespace C969_Task_1
             {
                 conn.Close();
             }
+
+            Console.WriteLine($"Deleted customer with ID {custId}");
         }
 
-        public List<string> GetConsultants()
+        public Customer UpdateCustomer(Customer customer, string user)
+        {
+            var conn = GetConnection();
+            try
+            {
+                conn.Open();
+
+                customer.LastUpdate = DateTime.UtcNow;
+                customer.LastUpdateBy = user;
+
+                var query = $"UPDATE customer SET customerId = {customer.Id}, customerName = '{customer.CustomerName}', addressId = {customer.AddressId}, " +
+                    $"active = {customer.Active}, createDate = '{customer.CreateDate:yyyy-MM-dd HH:mm:ss}', createdBy = '{customer.CreatedBy}', " +
+                    $"lastUpdate = '{customer.LastUpdate:yyyy-MM-dd HH:mm:ss}', lastUpdateBy = '{customer.LastUpdateBy}'";
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            return customer;
+        }
+
+        // consultants
+        public List<string> GetAllConsultants()
         {
             var conn = GetConnection();
 
@@ -522,7 +565,54 @@ namespace C969_Task_1
             return results;
         }
 
-        public BindingList<Appointment> GetAppointments(DateTime startDate, DateTime endDate)
+
+        // appointments
+
+        public BindingList<Appointment> GetAllAppointments()
+        {
+            var appts = new BindingList<Appointment>();
+
+            var conn = GetConnection();
+
+            try
+            {
+                conn.Open();
+
+                var query = $"SELECT appointmentId, customerId, userId, type, start, end, createDate, createdBy, lastUpdate, lastUpdateBy FROM appointment";
+                Console.WriteLine($"Executing query: {query}");
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    appts.Add(new Appointment
+                    {
+                        AppointmentId = int.Parse(rdr[0].ToString()),
+                        CustomerId = int.Parse(rdr[1].ToString()),
+                        UserId = int.Parse(rdr[2].ToString()),
+                        Type = rdr[3].ToString(),
+                        Start = DateTime.Parse(rdr[4].ToString()).ToLocalTime(),
+                        End = DateTime.Parse(rdr[5].ToString()).ToLocalTime(),
+                        CreateDate = DateTime.Parse(rdr[6].ToString()).ToLocalTime(),
+                        CreatedBy = rdr[7].ToString(),
+                        LastUpdate = DateTime.Parse(rdr[8].ToString()).ToLocalTime(),
+                        LastUpdateBy = rdr[9].ToString()
+                    });
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            Console.WriteLine($"Got {appts.Count} appointments");
+            return appts;
+        }
+
+        public BindingList<Appointment> GetAppointmentsByRange(DateTime startDate, DateTime endDate)
         {
             var appts = new BindingList<Appointment>();
 
@@ -552,51 +642,6 @@ namespace C969_Task_1
                         LastUpdate = DateTime.Parse(rdr[8].ToString()).ToLocalTime(),
                         LastUpdateBy = rdr[9].ToString()
                     }) ;
-                }
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-
-            Console.WriteLine($"Got {appts.Count} appointments");
-            return appts;
-        }
-
-        public BindingList<Appointment> GetAppointments(DateTime startDate, DateTime endDate, int consultantId)
-        {
-            var appts = new BindingList<Appointment>();
-
-            var conn = GetConnection();
-
-            try
-            {
-                conn.Open();
-
-                var query = $"SELECT appointmentId, customerId, userId, type, start, end, createDate, createdBy, lastUpdate, lastUpdateBy FROM appointment\n" +
-                             $"WHERE start BETWEEN '{startDate:yyyy-MM-dd}' AND DATE_ADD('{endDate:yyyy-MM-dd}', INTERVAL 1 DAY)";
-                Console.WriteLine($"Executing query: {query}");
-                var cmd = new MySqlCommand(query, conn);
-                var rdr = cmd.ExecuteReader();
-                while (rdr.Read())
-                {
-                    appts.Add(new Appointment
-                    {
-                        AppointmentId = int.Parse(rdr[0].ToString()),
-                        CustomerId = int.Parse(rdr[1].ToString()),
-                        UserId = int.Parse(rdr[2].ToString()),
-                        Type = rdr[3].ToString(),
-                        Start = DateTime.Parse(rdr[4].ToString()).ToLocalTime(),
-                        End = DateTime.Parse(rdr[5].ToString()).ToLocalTime(),
-                        CreateDate = DateTime.Parse(rdr[6].ToString()).ToLocalTime(),
-                        CreatedBy = rdr[7].ToString(),
-                        LastUpdate = DateTime.Parse(rdr[8].ToString()).ToLocalTime(),
-                        LastUpdateBy = rdr[9].ToString()
-                    });
                 }
             }
             catch (MySqlException ex)
@@ -686,34 +731,7 @@ namespace C969_Task_1
             Console.WriteLine($"Deleted appointment with ID {apptId}");
         }
 
-        public void DeleteCustomerById(int? custId)
-        {
-            if (custId == null)
-            {
-                throw new ArgumentNullException("custId", "custId cannot be null.");
-            }
-            var conn = GetConnection();
-
-            try
-            {
-                conn.Open();
-
-                var query = $"DELETE FROM customer WHERE customerId = {custId}";
-                Console.WriteLine($"Executing query: {query}");
-                var cmd = new MySqlCommand(query, conn);
-                var result = cmd.ExecuteNonQuery();
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-
-            Console.WriteLine($"Deleted customer with ID {custId}");
-        }
+        
 
 
         public void GetAppointmentsByConsultantId(int consultantId)

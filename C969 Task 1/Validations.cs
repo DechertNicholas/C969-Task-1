@@ -10,7 +10,31 @@ namespace C969_Task_1
 {
     public static class Validations
     {
-        public static OldCustomer ValidateCustomerData(UnvalidatedCustomer customer)
+        /// <summary>
+        /// A collection class to be used as the target for Validations.ValidateCustomerData.
+        /// Since the user can enter any values into the customer data text boxes, all properties here will be strings for validation purposes.
+        /// </summary>
+        public class CustomerValidationSet
+        {
+            public string Name;
+            public string PhoneNumber;
+            public string Address;
+            public string City;
+            public string ZipCode;
+            public string Country;
+
+            public CustomerValidationSet(string name, string phoneNumber, string address, string city, string zipCode, string country)
+            {
+                Name = name;
+                PhoneNumber = phoneNumber;
+                Address = address;
+                City = city;
+                ZipCode = zipCode;
+                Country = country;
+            }
+        }
+
+        public static void ValidateCustomerData(CustomerValidationSet customer)
         {
             // no name validations other than not null, as name can be anything
             if (string.IsNullOrWhiteSpace(customer.Name))
@@ -60,15 +84,6 @@ namespace C969_Task_1
             {
                 throw new ValidationException("Country should use a two letter abbreviation (FR, US, etc)");
             }
-
-            return new OldCustomer(
-                customer.Id,
-                customer.Name,
-                customer.PhoneNumber,
-                customer.Address,
-                customer.City,
-                int.Parse(customer.ZipCode),
-                customer.Country);
         }
     }
 }
