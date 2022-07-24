@@ -527,7 +527,8 @@ namespace C969_Task_1
 
                 var query = $"UPDATE customer SET customerId = {customer.Id}, customerName = '{customer.CustomerName}', addressId = {customer.AddressId}, " +
                     $"active = {customer.Active}, createDate = '{customer.CreateDate:yyyy-MM-dd HH:mm:ss}', createdBy = '{customer.CreatedBy}', " +
-                    $"lastUpdate = '{customer.LastUpdate:yyyy-MM-dd HH:mm:ss}', lastUpdateBy = '{customer.LastUpdateBy}'";
+                    $"lastUpdate = '{customer.LastUpdate:yyyy-MM-dd HH:mm:ss}', lastUpdateBy = '{customer.LastUpdateBy}' " +
+                    $"WHERE customerId = {customer.Id}";
                 var cmd = new MySqlCommand(query, conn);
                 var rdr = cmd.ExecuteNonQuery();
             }
