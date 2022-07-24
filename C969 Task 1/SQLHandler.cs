@@ -126,6 +126,8 @@ namespace C969_Task_1
             var conn = GetConnection();
             try
             {
+                conn.Open();
+
                 var countries = GetAllCountries();
                 country.CountryId = countries.Count == 0 ? 1 : countries.Last().CountryId + 1;
                 var query = $"INSERT INTO country VALUES ({country.CountryId}, '{country.CountryName}', '{country.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{country.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
@@ -223,6 +225,8 @@ namespace C969_Task_1
             var conn = GetConnection();
             try
             {
+                conn.Open();
+
                 var cities = GetAllCities();
                 city.CityId = cities.Count == 0 ? 1 : cities.Last().CityId + 1;
 
@@ -325,6 +329,8 @@ namespace C969_Task_1
             var conn = GetConnection();
             try
             {
+                conn.Open();
+
                 var addresses = GetAllAddresses();
                 address.AddressId = addresses.Count == 0 ? 1 : addresses.Last().AddressId + 1;
 
@@ -435,6 +441,8 @@ namespace C969_Task_1
 
             try
             {
+                conn.Open();
+
                 // all fields could potentially be new when adding a customer, so each needs to be checked.
 
                 // a country name is globally unique, so checking by name should only ever find one unique result, or nothing
