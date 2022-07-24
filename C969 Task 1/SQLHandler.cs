@@ -18,7 +18,6 @@ namespace C969_Task_1
     {
         private Translator LocalTranslator = new Translator();
 
-
         public MySqlConnection GetConnection()
         {
             string connStr = ConfigurationManager.ConnectionStrings["RQLDEV01"].ConnectionString;
@@ -104,9 +103,9 @@ namespace C969_Task_1
                 {
                     country.CountryId = int.Parse(rdr[0].ToString()); // id
                     country.CountryName = rdr[1].ToString(); // name
-                    country.CreateDate = DateTime.ParseExact(rdr[2].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    country.CreateDate = (DateTime)rdr[2];
                     country.CreatedBy = rdr[3].ToString();
-                    country.LastUpdate = DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    country.LastUpdate = (DateTime)rdr[4];
                     country.LastUpdateBy = rdr[5].ToString();
                 }
             }
@@ -121,16 +120,20 @@ namespace C969_Task_1
             return country;
         }
 
-        public Country AddCountry(Country country, string user)
+        public Country AddCountry(string countryName, string user)
         {
             var conn = GetConnection();
+            var countries = GetAllCountries();
+            var countryId = countries.Count == 0 ? 1 : countries.Last().CountryId + 1;
+            var nowDate = DateTime.UtcNow;
+
+            var country = new Country(countryId, countryName, nowDate, user, nowDate, user);
+
             try
             {
                 conn.Open();
 
-                var countries = GetAllCountries();
-                country.CountryId = countries.Count == 0 ? 1 : countries.Last().CountryId + 1;
-                var query = $"INSERT INTO country VALUES ({country.CountryId}, '{country.CountryName}', '{country.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{country.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
+                var query = $"INSERT INTO country VALUES ({country.CountryId}, '{country.CountryName}', '{country.CreateDate:yyyy-MM-dd HH:mm:ss}', '{country.CreatedBy}', '{country.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{country.LastUpdateBy}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -203,9 +206,9 @@ namespace C969_Task_1
                     city.CityId = int.Parse(rdr[0].ToString()); // id
                     city.CityName = rdr[1].ToString(); // name
                     city.CountryId = int.Parse(rdr[2].ToString()); // countryId
-                    city.CreateDate = DateTime.ParseExact(rdr[3].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    city.CreateDate = (DateTime)rdr[3];
                     city.CreatedBy = rdr[4].ToString();
-                    city.LastUpdate = DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    city.LastUpdate = (DateTime)rdr[5];
                     city.LastUpdateBy = rdr[6].ToString();
                 }
             }
@@ -220,17 +223,20 @@ namespace C969_Task_1
             return city;
         }
 
-        public City AddCity(City city, string user)
+        public City AddCity(string cityName, int countryId, string user)
         {
             var conn = GetConnection();
+            var cities = GetAllCities();
+            var cityId = cities.Count == 0 ? 1 : cities.Last().CityId + 1;
+            var nowDate = DateTime.UtcNow;
+            var city = new City(cityId, cityName, countryId, nowDate, user, nowDate, user);
+
             try
             {
                 conn.Open();
 
-                var cities = GetAllCities();
-                city.CityId = cities.Count == 0 ? 1 : cities.Last().CityId + 1;
-
-                var query = $"INSERT INTO city VALUES ({city.CityId}, '{city.CityName}', {city.CountryId}, '{city.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{city.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
+                var query = $"INSERT INTO city VALUES ({city.CityId}, '{city.CityName}', {city.CountryId}, '{city.CreateDate:yyyy-MM-dd HH:mm:ss}', " +
+                    $"'{city.CreatedBy}', '{city.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{city.LastUpdateBy}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -302,15 +308,16 @@ namespace C969_Task_1
                 var rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                 {
-                    int.Parse(rdr[0].ToString()); // id
-                    rdr[1].ToString(); // name
-                    int.Parse(rdr[2].ToString()); // cityId
-                    rdr[3].ToString(); // postal code
-                    rdr[4].ToString(); // phone
-                    DateTime.ParseExact(rdr[5].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    rdr[6].ToString();
-                    DateTime.ParseExact(rdr[7].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    rdr[8].ToString();
+                    address.AddressId = int.Parse(rdr[0].ToString()); // id
+                    address.AddressName = rdr[1].ToString(); // name
+                    address.Address2 = rdr[2].ToString();
+                    address.CityId = int.Parse(rdr[3].ToString()); // cityId
+                    address.PostalCode = rdr[4].ToString(); // postal code
+                    address.Phone = rdr[5].ToString(); // phone
+                    address.CreateDate = (DateTime)rdr[6];
+                    address.CreatedBy = rdr[7].ToString();
+                    address.LastUpdate = (DateTime)rdr[8];
+                    address.LastUpdateBy = rdr[9].ToString();
                 }
             }
             catch (MySqlException ex)
@@ -324,17 +331,22 @@ namespace C969_Task_1
             return address;
         }
 
-        public Address AddAddress(Address address, string user)
+        public Address AddAddress(string addressName, int cityId, string postalCode, string phone, string user)
         {
             var conn = GetConnection();
+            var addresses = GetAllAddresses();
+            var addressId = addresses.Count == 0 ? 1 : addresses.Last().AddressId + 1;
+            var nowDate = DateTime.UtcNow;
+
+            var address = new Address(addressId, addressName, cityId, postalCode, phone, nowDate, user, nowDate, user);
+
             try
             {
                 conn.Open();
 
-                var addresses = GetAllAddresses();
-                address.AddressId = addresses.Count == 0 ? 1 : addresses.Last().AddressId + 1;
-
-                var query = $"INSERT INTO address VALUES ({address.AddressId}, '{address.AddressName}', '{address.Address2}', {address.CityId}, '{address.PostalCode}', '{address.Phone}', '{address.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{address.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
+                var query = $"INSERT INTO address VALUES ({address.AddressId}, '{address.AddressName}', '{address.Address2}', {address.CityId}, " + 
+                    $"'{address.PostalCode}', '{address.Phone}', '{address.CreateDate:yyyy-MM-dd HH:mm:ss}', '{address.CreatedBy}', " + 
+                    $"'{address.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{address.LastUpdateBy}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -411,9 +423,9 @@ namespace C969_Task_1
                     customer.CustomerName = rdr[1].ToString(); // name
                     customer.AddressId = int.Parse(rdr[2].ToString()); // address id
                     customer.Active = (bool)rdr[3]; // active (0, 1)
-                    customer.CreateDate = DateTime.ParseExact(rdr[4].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    customer.CreateDate = (DateTime)rdr[4];
                     customer.CreatedBy = rdr[5].ToString();
-                    customer.LastUpdate = DateTime.ParseExact(rdr[6].ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    customer.LastUpdate = (DateTime)rdr[6];
                     customer.LastUpdateBy = rdr[7].ToString();
                 }
             }
@@ -429,15 +441,18 @@ namespace C969_Task_1
             return customer;
         }
 
-        public Customer AddCustomer(Validations.CustomerValidationSet customerSet, string user)
+        public Customer AddCustomer(string customerName, int addressId, string user)
         {
             var conn = GetConnection();
             var nowDate = DateTime.UtcNow;
-            // transform the customerSet into the individual classes. Using 0 for the IDs as a placeholder, as no ID should ever be 0 in the database
-            var country = new Country(0, customerSet.Country, nowDate, user, nowDate, user);
-            var city = new City(0, customerSet.City, 0, nowDate, user, nowDate, user);
-            var address = new Address(0, customerSet.Address, 0, customerSet.ZipCode, customerSet.PhoneNumber, nowDate, user, nowDate, user);
-            var customer = new Customer(0, customerSet.Name, 0, true, nowDate, user, nowDate, user);
+            var customers = GetAllCustomers();
+            var customerId = customers.Count == 0 ? 1 : customers.Last().Id + 1;
+            var customer = new Customer(customerId, customerName, addressId, true, nowDate, user, nowDate, user);
+            //// transform the customerSet into the individual classes. Using 0 for the IDs as a placeholder, as no ID should ever be 0 in the database
+            //var country = new Country(0, customerSet.Country, nowDate, user, nowDate, user);
+            //var city = new City(0, customerSet.City, 0, nowDate, user, nowDate, user);
+            //var address = new Address(0, customerSet.Address, 0, customerSet.ZipCode, customerSet.PhoneNumber, nowDate, user, nowDate, user);
+            //var customer = new Customer(0, customerSet.Name, 0, true, nowDate, user, nowDate, user);
 
             try
             {
@@ -446,31 +461,31 @@ namespace C969_Task_1
                 // all fields could potentially be new when adding a customer, so each needs to be checked.
 
                 // a country name is globally unique, so checking by name should only ever find one unique result, or nothing
-                var dbCountry = GetAllCountries().Where(c => c.CountryName == country.CountryName).FirstOrDefault();
-                dbCountry ??= AddCountry(country, user);
+                //var dbCountry =
 
-                // city names can be duplicated once per country (in this implementation), so if one if found, it must have an associated countryId
-                // the city name and country id will create a unique composite key
-                var dbCity = GetAllCities().Where(c => c.CityName == city.CityName).Where(c => c.CountryId == dbCountry.CountryId).FirstOrDefault();
-                dbCity ??= AddCity(city, user);
+                //// city names can be duplicated once per country (in this implementation), so if one if found, it must have an associated countryId
+                //// the city name and country id will create a unique composite key
+                //var dbCity = GetAllCities().Where(c => c.CityName == city.CityName).Where(c => c.CountryId == dbCountry.CountryId).FirstOrDefault();
+                //dbCity ??= AddCity(city, user);
 
-                // address is the same as city above. A composite key of address name and city id will be unique
-                var dbAddress = GetAllAddresses().Where(a => a.AddressName == address.AddressName).Where(a => a.CityId == dbCity.CityId).FirstOrDefault();
-                dbAddress ??= AddAddress(address, user);
+                //// address is the same as city above. A composite key of address name and city id will be unique
+                //var dbAddress = GetAllAddresses().Where(a => a.AddressName == address.AddressName).Where(a => a.CityId == dbCity.CityId).FirstOrDefault();
+                //dbAddress ??= AddAddress(address, user);
 
                 // customer will be the same as address, with a composite key of name and addressId
-                var dbCustomer = GetAllCustomers().Where(c => c.CustomerName == customer.CustomerName).Where(c => c.AddressId == dbAddress.AddressId).FirstOrDefault();
+                var dbCustomer = GetAllCustomers()
+                    .Where(c => c.CustomerName == customer.CustomerName)
+                    .Where(c => c.AddressId == customer.AddressId)
+                    .FirstOrDefault();
                 if (dbCustomer != null)
                 {
-                    throw new DuplicateRecordException("Customer is already present in the database:\n" +
-                        $"Name: {customer.CustomerName}\nPhone: {address.Phone}\nAddress: {address.AddressName}\nCity: {city.CityName}\n" +
-                        $"Zip: {address.PostalCode}\nCountry: {country.CountryName}");
+                    throw new DuplicateRecordException("Customer is already present in the database");
                 }
 
-                var customers = GetAllCustomers();
-                customer.Id = customers.Count == 0 ? 1 : customers.Last().Id + 1;
 
-                var query = $"INSERT INTO customer VALUES ({customer.Id}, '{customer.CustomerName}', {customer.AddressId}, {customer.Active}, '{customer.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{customer.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
+
+                var query = $"INSERT INTO customer VALUES ({customer.Id}, '{customer.CustomerName}', {customer.AddressId}, {customer.Active}, " + 
+                    $"'{customer.CreateDate:yyyy-MM-dd HH:mm:ss}', '{user}', '{customer.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{user}')";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 
@@ -518,15 +533,17 @@ namespace C969_Task_1
         public Customer UpdateCustomer(Customer customer, string user)
         {
             var conn = GetConnection();
+            customer.LastUpdate = DateTime.UtcNow;
+            customer.LastUpdateBy = user;
+
+            // declare here for returning later
             try
             {
                 conn.Open();
 
-                customer.LastUpdate = DateTime.UtcNow;
-                customer.LastUpdateBy = user;
+                var nowDate = DateTime.UtcNow;
 
-                var query = $"UPDATE customer SET customerId = {customer.Id}, customerName = '{customer.CustomerName}', addressId = {customer.AddressId}, " +
-                    $"active = {customer.Active}, createDate = '{customer.CreateDate:yyyy-MM-dd HH:mm:ss}', createdBy = '{customer.CreatedBy}', " +
+                var query = $"UPDATE customer SET customerName = '{customer.CustomerName}', addressId = {customer.AddressId}, " +
                     $"lastUpdate = '{customer.LastUpdate:yyyy-MM-dd HH:mm:ss}', lastUpdateBy = '{customer.LastUpdateBy}' " +
                     $"WHERE customerId = {customer.Id}";
                 var cmd = new MySqlCommand(query, conn);
@@ -574,9 +591,7 @@ namespace C969_Task_1
             return results;
         }
 
-
         // appointments
-
         public BindingList<Appointment> GetAllAppointments()
         {
             var appts = new BindingList<Appointment>();
@@ -739,9 +754,6 @@ namespace C969_Task_1
 
             Console.WriteLine($"Deleted appointment with ID {apptId}");
         }
-
-        
-
 
         public void GetAppointmentsByConsultantId(int consultantId)
         {

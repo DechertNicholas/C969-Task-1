@@ -26,8 +26,10 @@ namespace C969_Task_1
         List<string> CustomerNames = new List<string>();
         BindingList<Appointment> Appointments = new BindingList<Appointment>();
 
-        bool EditCustomer = false;
-        bool EditAppt = false;
+        bool AddingCustomer = false;
+        bool EditingCustomer = false;
+        bool AddingAppt = false;
+        bool EditingAppt = false;
 
         //int SelectedCustomer = 0;
         //int SelectedCustomerForAppt = 0;
@@ -219,18 +221,83 @@ namespace C969_Task_1
             PopulateAppointmentData(appt);
         }
 
+        private Country AddOrGetCountry(string countryName)
+        {
+            // check if the country exists in the database
+            var existingCountry = Handler.GetAllCountries()
+                .Where(c => c.CountryName == countryName)
+                .FirstOrDefault();
+
+            return existingCountry ?? Handler.AddCountry(countryName, CurrentUser);
+
+            //// if this is a new country, add it
+            //if (existingCountry == null)
+            //{
+            //    return Handler.AddCountry(countryName, CurrentUser);
+            //}
+            //else
+            //{
+            //    // update our reference to that existing country
+            //    return existingCountry;
+            //}
+        }
+
+        private City AddOrGetCity(string cityName, int countryId)
+        {
+            var existingCity = Handler.GetAllCities()
+                .Where(c => c.CityName == cityName)
+                .Where(c => c.CountryId == countryId)
+                .FirstOrDefault();
+
+            return existingCity ?? Handler.AddCity(cityName, countryId, CurrentUser);
+
+            //// if no matching city name + countryId is found
+            //if (existingCity == null)
+            //{
+            //    return Handler.AddCity(cityName, countryId,  CurrentUser);
+            //}
+            //else
+            //{
+            //    // update our reference to city
+            //    return existingCity;
+            //}
+        }
+
+        private Address AddOrGetAddress(string addressName, int cityId, string postalCode, string phone)
+        {
+            var existingAddress = Handler.GetAllAddresses()
+                .Where(a => a.AddressName == addressName)
+                .Where(a => a.Phone == phone)
+                .Where(a => a.PostalCode == postalCode)
+                .Where(a => a.CityId == cityId)
+                .FirstOrDefault();
+
+            return existingAddress ?? Handler.AddAddress(addressName, cityId, postalCode, phone, CurrentUser);
+
+            //// if no matching address is found, add it
+            //if (existingAddress == null)
+            //{
+            //    return Handler.AddAddress(addressName, cityId, postalCode, phone, CurrentUser);
+            //}
+            //else
+            //{
+            //    // update our reference to the existing address
+            //    return existingAddress;
+            //}
+        }
+
         private void UpdateCustomer()
         {
-            if (EditCustomer == false)
+            if (EditingCustomer == false)
             {
                 // Not editing a customer, we're starting to edit a customer
                 // Save will need to be clicked to finish
-                EditCustomer = true;
+                EditingCustomer = true;
 
                 buttonAddSaveCustomer.Text = "Save";
                 buttonRemoveCancelCustomer.Text = "Cancel";
 
-                ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+                ToggleEditableControls(EditingCustomer, UISection.CUSTOMER);
                 buttonEditCustomer.Enabled = false;
             }
             else
@@ -265,6 +332,11 @@ namespace C969_Task_1
                     var city = Handler.GetCityById(address.CityId);
                     var country = Handler.GetCountryById(city.CountryId);
 
+                    // create a copy of originalCustomer that will be edited to hold the new data
+                    //var customer = new Customer(originalCustomer.Id, originalCustomer.CustomerName, originalCustomer.AddressId,
+                    //    originalCustomer.Active, originalCustomer.CreateDate, originalCustomer.CreatedBy, originalCustomer.LastUpdate,
+                    //    originalCustomer.LastUpdateBy);
+
                     // informs us if the record that relies on the changed record needs to be changed
                     // if country is changed, the new country may need to be added to the database, or gotten from the database
                     var countryUpdated = false;
@@ -274,21 +346,8 @@ namespace C969_Task_1
                     // countryId will be updated when adding the new country, if needed
                     if (country.CountryName != textBoxCountry.Text)
                     {
-                        country.CountryName = textBoxCountry.Text;
+                        country = AddOrGetCountry(textBoxCountry.Text);
 
-                        // check if the country exists in the database
-                        var existingCountry = Handler.GetAllCountries().Where(c => c.CountryName == country.CountryName).FirstOrDefault();
-
-                        // if this is a new country, add it
-                        if (existingCountry == null)
-                        {
-                            country = Handler.AddCountry(country, CurrentUser);
-                        }
-                        else
-                        {
-                            // update our reference to that existing country
-                            country = existingCountry;
-                        }
                         countryUpdated = true;
                         // update the reference in city
                         city.CountryId = country.CountryId;
@@ -300,18 +359,8 @@ namespace C969_Task_1
                     {
                         city.CityName = textBoxCity.Text;
 
-                        var existingCity = Handler.GetAllCities().Where(c => c.CityName == city.CityName).Where(c => c.CountryId == city.CountryId).FirstOrDefault();
-
-                        // if no matching city name + countryId is found
-                        if (existingCity == null)
-                        {
-                            city = Handler.AddCity(city, CurrentUser);
-                        }
-                        else
-                        {
-                            // update our reference to city
-                            city = existingCity;
-                        }
+                        city = AddOrGetCity(textBoxCity.Text, country.CountryId);
+                        
                         cityUpdated = true;
                         // update the reference in address
                         address.CityId = city.CityId;
@@ -324,22 +373,8 @@ namespace C969_Task_1
                         address.Phone = textBoxPhoneNumber.Text;
                         address.PostalCode = textBoxZip.Text;
 
-                        var existingAddress = Handler.GetAllAddresses().Where(a => a.AddressName == address.AddressName)
-                            .Where(a => a.Phone == address.Phone)
-                            .Where(a => a.PostalCode == address.PostalCode)
-                            .Where(a => a.CityId == city.CityId)
-                            .FirstOrDefault();
+                        address = AddOrGetAddress(textBoxAddress.Text, city.CityId, textBoxZip.Text, textBoxPhoneNumber.Text);
 
-                        // if no matching address is found, add it
-                        if (existingAddress == null)
-                        {
-                            address = Handler.AddAddress(address, CurrentUser);
-                        }
-                        else
-                        {
-                            // update our reference to the existing address
-                            address = existingAddress;
-                        }
                         addressUpdated = true;
                         // update our reference in customer
                         customer.AddressId = address.AddressId;
@@ -348,14 +383,78 @@ namespace C969_Task_1
                     if (customer.CustomerName != textBoxName.Text || addressUpdated)
                     {
                         customer.CustomerName = textBoxName.Text;
-                        Handler.UpdateCustomer(customer, CurrentUser);
+                        customer = Handler.UpdateCustomer(customer, CurrentUser);
                     }
 
                     // reset the UI state
-                    EditCustomer = false;
+                    EditingCustomer = false;
                     buttonAddSaveCustomer.Text = "Add";
                     buttonRemoveCancelCustomer.Text = "Remove";
-                    ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+                    ToggleEditableControls(EditingCustomer, UISection.CUSTOMER);
+
+                    // Refresh customer data list
+                    PopulateData();
+                    buttonEditCustomer.Enabled = true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Validation Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+
+                }
+            }
+        }
+
+        private void AddCustomer()
+        {
+            if (AddingCustomer == false)
+            {
+                // Not editing a customer, we're adding a new customer
+                // The button is meant to be clicked again to save
+                AddingCustomer = true;
+
+                buttonAddSaveCustomer.Text = "Save";
+                buttonRemoveCancelCustomer.Text = "Cancel";
+
+                // Clear the text boxes for data entry
+                textBoxName.Text = null;
+                textBoxPhoneNumber.Text = null;
+                textBoxAddress.Text = null;
+                textBoxCity.Text = null;
+                textBoxZip.Text = null;
+                textBoxCountry.Text = null;
+
+                ToggleEditableControls(AddingCustomer, UISection.CUSTOMER);
+                buttonEditCustomer.Enabled = false;
+            }
+            else
+            {
+                // customer is meant to be saved now
+                try
+                {
+                    var customerSet = new Validations.CustomerValidationSet(
+                        textBoxName.Text,
+                        textBoxPhoneNumber.Text,
+                        textBoxAddress.Text,
+                        textBoxCity.Text,
+                        textBoxZip.Text,
+                        textBoxCountry.Text
+                        );
+                    Validations.ValidateCustomerData(customerSet);
+
+                    var country = AddOrGetCountry(customerSet.Country);
+                    var city = AddOrGetCity(textBoxCity.Text, country.CountryId);
+                    var address = AddOrGetAddress(textBoxAddress.Text, city.CityId, textBoxZip.Text, textBoxPhoneNumber.Text);
+
+                    Handler.AddCustomer(textBoxName.Text, address.AddressId, CurrentUser);
+
+                    // set our UI back to normal
+                    EditingCustomer = false;
+                    buttonAddSaveCustomer.Text = "Add";
+                    buttonRemoveCancelCustomer.Text = "Remove";
+                    ToggleEditableControls(EditingCustomer, UISection.CUSTOMER);
 
                     // Refresh customer data list
                     PopulateData();
@@ -375,61 +474,14 @@ namespace C969_Task_1
         // ui methods
         private void buttonAddSaveCustomer_Click(object sender, EventArgs e)
         {
-            if (EditCustomer == false)
+            // "save" can mean save the newly added customer, or save the updated customer data
+            if (EditingCustomer)
             {
-                // Not editing a customer, we're adding a new customer
-                // The button is meant to be clicked again to save
-                EditCustomer = true;
-
-                buttonAddSaveCustomer.Text = "Save";
-                buttonRemoveCancelCustomer.Text = "Cancel";
-
-                // Clear the text boxes for data entry
-                textBoxName.Text = null;
-                textBoxPhoneNumber.Text = null;
-                textBoxAddress.Text = null;
-                textBoxCity.Text = null;
-                textBoxZip.Text = null;
-                textBoxCountry.Text = null;
-
-                ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
-                buttonEditCustomer.Enabled = false;
+                UpdateCustomer();
             }
             else
             {
-                // customer is meant to be saved now
-                try
-                {
-                    var customerSet = new Validations.CustomerValidationSet(
-                        textBoxName.Text,
-                        textBoxPhoneNumber.Text,
-                        textBoxAddress.Text,
-                        textBoxCity.Text,
-                        textBoxZip.Text,
-                        textBoxCountry.Text
-                        );
-                    Validations.ValidateCustomerData(customerSet);
-
-                    Handler.AddCustomer(customerSet, CurrentUser);
-
-                    // set our UI back to normal
-                    EditCustomer = false;
-                    buttonAddSaveCustomer.Text = "Add";
-                    buttonRemoveCancelCustomer.Text = "Remove";
-                    ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
-
-                    // Refresh customer data list
-                    PopulateData();
-                    buttonEditCustomer.Enabled = true;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Validation Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                finally
-                {
-
-                }
+                AddCustomer();
             }
         }
 
@@ -440,15 +492,16 @@ namespace C969_Task_1
 
         private void buttonRemoveCancelCustomer_Click(object sender, EventArgs e)
         {
-            if (EditCustomer == true)
+            if (EditingCustomer || AddingCustomer)
             {
                 // Cancel an edit
-                EditCustomer = false;
+                EditingCustomer = false;
+                AddingCustomer = false;
 
                 buttonAddSaveCustomer.Text = "Add";
                 buttonRemoveCancelCustomer.Text = "Remove";
 
-                ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+                ToggleEditableControls(EditingCustomer, UISection.CUSTOMER);
 
                 // repopulate the customer data into the appropriate text fields
                 SelectAppointment();
@@ -523,11 +576,11 @@ namespace C969_Task_1
         // needs fixing
         private void buttonAddSaveAppt_Click(object sender, EventArgs e)
         {
-            if (EditAppt == false)
+            if (EditingAppt == false)
             {
                 // Not editing an appointment, we're adding a new appointment
                 // The button is meant to be clicked again to save
-                EditAppt = true;
+                EditingAppt = true;
 
                 buttonAddSaveAppt.Text = "Save";
                 buttonRemoveCancelAppt.Text = "Cancel";
@@ -538,7 +591,7 @@ namespace C969_Task_1
                 comboBoxConsultant.SelectedItem = null;
                 textBoxApptType.Text = null;
 
-                ToggleEditableControls(EditAppt, UISection.APPT);
+                ToggleEditableControls(EditingAppt, UISection.APPT);
                 buttonEditAppt.Enabled = false;
             }
             else
@@ -552,10 +605,10 @@ namespace C969_Task_1
                     
                     // validate
 
-                    EditCustomer = false;
+                    EditingCustomer = false;
                     buttonAddSaveCustomer.Text = "Add";
                     buttonRemoveCancelCustomer.Text = "Remove";
-                    ToggleEditableControls(EditCustomer, UISection.CUSTOMER);
+                    ToggleEditableControls(EditingCustomer, UISection.CUSTOMER);
 
                     // Refresh customer data list
                     PopulateData();
