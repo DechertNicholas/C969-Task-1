@@ -122,7 +122,7 @@ namespace C969_Task_1
             this.textBoxApptType.Location = new System.Drawing.Point(133, 132);
             this.textBoxApptType.Name = "textBoxApptType";
             this.textBoxApptType.Size = new System.Drawing.Size(206, 20);
-            this.textBoxApptType.TabIndex = 15;
+            this.textBoxApptType.TabIndex = 5;
             // 
             // labelApptType
             // 
@@ -175,7 +175,7 @@ namespace C969_Task_1
             this.comboBoxTimeForAppt.Location = new System.Drawing.Point(218, 76);
             this.comboBoxTimeForAppt.Name = "comboBoxTimeForAppt";
             this.comboBoxTimeForAppt.Size = new System.Drawing.Size(121, 21);
-            this.comboBoxTimeForAppt.TabIndex = 8;
+            this.comboBoxTimeForAppt.TabIndex = 3;
             // 
             // comboBoxCustomerForAppt
             // 
@@ -183,7 +183,7 @@ namespace C969_Task_1
             this.comboBoxCustomerForAppt.Location = new System.Drawing.Point(6, 36);
             this.comboBoxCustomerForAppt.Name = "comboBoxCustomerForAppt";
             this.comboBoxCustomerForAppt.Size = new System.Drawing.Size(121, 21);
-            this.comboBoxCustomerForAppt.TabIndex = 7;
+            this.comboBoxCustomerForAppt.TabIndex = 1;
             // 
             // comboBoxConsultant
             // 
@@ -191,21 +191,21 @@ namespace C969_Task_1
             this.comboBoxConsultant.Location = new System.Drawing.Point(6, 132);
             this.comboBoxConsultant.Name = "comboBoxConsultant";
             this.comboBoxConsultant.Size = new System.Drawing.Size(121, 21);
-            this.comboBoxConsultant.TabIndex = 6;
+            this.comboBoxConsultant.TabIndex = 4;
             // 
             // dateTimePickerForAppt
             // 
             this.dateTimePickerForAppt.Location = new System.Drawing.Point(7, 76);
             this.dateTimePickerForAppt.Name = "dateTimePickerForAppt";
             this.dateTimePickerForAppt.Size = new System.Drawing.Size(205, 20);
-            this.dateTimePickerForAppt.TabIndex = 4;
+            this.dateTimePickerForAppt.TabIndex = 2;
             // 
             // buttonRemoveCancelAppt
             // 
             this.buttonRemoveCancelAppt.Location = new System.Drawing.Point(170, 185);
             this.buttonRemoveCancelAppt.Name = "buttonRemoveCancelAppt";
             this.buttonRemoveCancelAppt.Size = new System.Drawing.Size(75, 23);
-            this.buttonRemoveCancelAppt.TabIndex = 2;
+            this.buttonRemoveCancelAppt.TabIndex = 8;
             this.buttonRemoveCancelAppt.Text = "Remove/Cancel";
             this.buttonRemoveCancelAppt.UseVisualStyleBackColor = true;
             // 
@@ -214,7 +214,7 @@ namespace C969_Task_1
             this.buttonEditAppt.Location = new System.Drawing.Point(89, 185);
             this.buttonEditAppt.Name = "buttonEditAppt";
             this.buttonEditAppt.Size = new System.Drawing.Size(75, 23);
-            this.buttonEditAppt.TabIndex = 1;
+            this.buttonEditAppt.TabIndex = 7;
             this.buttonEditAppt.Text = "Edit";
             this.buttonEditAppt.UseVisualStyleBackColor = true;
             // 
@@ -223,7 +223,7 @@ namespace C969_Task_1
             this.buttonAddSaveAppt.Location = new System.Drawing.Point(7, 185);
             this.buttonAddSaveAppt.Name = "buttonAddSaveAppt";
             this.buttonAddSaveAppt.Size = new System.Drawing.Size(75, 23);
-            this.buttonAddSaveAppt.TabIndex = 0;
+            this.buttonAddSaveAppt.TabIndex = 6;
             this.buttonAddSaveAppt.Text = "Add/Save";
             this.buttonAddSaveAppt.UseVisualStyleBackColor = true;
             this.buttonAddSaveAppt.Click += new System.EventHandler(this.buttonAddSaveAppt_Click);
@@ -266,7 +266,7 @@ namespace C969_Task_1
             this.textBoxCountry.Location = new System.Drawing.Point(6, 126);
             this.textBoxCountry.Name = "textBoxCountry";
             this.textBoxCountry.Size = new System.Drawing.Size(100, 20);
-            this.textBoxCountry.TabIndex = 26;
+            this.textBoxCountry.TabIndex = 6;
             // 
             // labelZip
             // 
@@ -282,7 +282,7 @@ namespace C969_Task_1
             this.textBoxZip.Location = new System.Drawing.Point(218, 79);
             this.textBoxZip.Name = "textBoxZip";
             this.textBoxZip.Size = new System.Drawing.Size(100, 20);
-            this.textBoxZip.TabIndex = 24;
+            this.textBoxZip.TabIndex = 5;
             // 
             // labelCity
             // 
@@ -298,7 +298,7 @@ namespace C969_Task_1
             this.textBoxCity.Location = new System.Drawing.Point(112, 79);
             this.textBoxCity.Name = "textBoxCity";
             this.textBoxCity.Size = new System.Drawing.Size(100, 20);
-            this.textBoxCity.TabIndex = 22;
+            this.textBoxCity.TabIndex = 4;
             // 
             // labelPhoneNumber
             // 
@@ -332,7 +332,7 @@ namespace C969_Task_1
             this.buttonRemoveCancelCustomer.Location = new System.Drawing.Point(170, 185);
             this.buttonRemoveCancelCustomer.Name = "buttonRemoveCancelCustomer";
             this.buttonRemoveCancelCustomer.Size = new System.Drawing.Size(75, 23);
-            this.buttonRemoveCancelCustomer.TabIndex = 17;
+            this.buttonRemoveCancelCustomer.TabIndex = 9;
             this.buttonRemoveCancelCustomer.Text = "Remove/Cancel";
             this.buttonRemoveCancelCustomer.UseVisualStyleBackColor = true;
             this.buttonRemoveCancelCustomer.Click += new System.EventHandler(this.buttonRemoveCancelCustomer_Click);
@@ -342,7 +342,7 @@ namespace C969_Task_1
             this.buttonEditCustomer.Location = new System.Drawing.Point(89, 185);
             this.buttonEditCustomer.Name = "buttonEditCustomer";
             this.buttonEditCustomer.Size = new System.Drawing.Size(75, 23);
-            this.buttonEditCustomer.TabIndex = 16;
+            this.buttonEditCustomer.TabIndex = 8;
             this.buttonEditCustomer.Text = "Edit";
             this.buttonEditCustomer.UseVisualStyleBackColor = true;
             this.buttonEditCustomer.Click += new System.EventHandler(this.buttonEditCustomer_Click);
@@ -352,14 +352,14 @@ namespace C969_Task_1
             this.textBoxPhoneNumber.Location = new System.Drawing.Point(218, 38);
             this.textBoxPhoneNumber.Name = "textBoxPhoneNumber";
             this.textBoxPhoneNumber.Size = new System.Drawing.Size(100, 20);
-            this.textBoxPhoneNumber.TabIndex = 7;
+            this.textBoxPhoneNumber.TabIndex = 2;
             // 
             // buttonAddSaveCustomer
             // 
             this.buttonAddSaveCustomer.Location = new System.Drawing.Point(7, 185);
             this.buttonAddSaveCustomer.Name = "buttonAddSaveCustomer";
             this.buttonAddSaveCustomer.Size = new System.Drawing.Size(75, 23);
-            this.buttonAddSaveCustomer.TabIndex = 15;
+            this.buttonAddSaveCustomer.TabIndex = 7;
             this.buttonAddSaveCustomer.Text = "Add/Save";
             this.buttonAddSaveCustomer.UseVisualStyleBackColor = true;
             this.buttonAddSaveCustomer.Click += new System.EventHandler(this.buttonAddSaveCustomer_Click);
@@ -369,14 +369,14 @@ namespace C969_Task_1
             this.textBoxAddress.Location = new System.Drawing.Point(6, 79);
             this.textBoxAddress.Name = "textBoxAddress";
             this.textBoxAddress.Size = new System.Drawing.Size(100, 20);
-            this.textBoxAddress.TabIndex = 6;
+            this.textBoxAddress.TabIndex = 3;
             // 
             // textBoxName
             // 
             this.textBoxName.Location = new System.Drawing.Point(6, 38);
             this.textBoxName.Name = "textBoxName";
             this.textBoxName.Size = new System.Drawing.Size(206, 20);
-            this.textBoxName.TabIndex = 5;
+            this.textBoxName.TabIndex = 1;
             // 
             // menuStripScheduling
             // 
