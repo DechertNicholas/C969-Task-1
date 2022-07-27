@@ -11,6 +11,15 @@ namespace C969_Task_1.Models
     /// </summary>
     public class Consultant
     {
+        public int Id;
+        public string Name;
 
+        public Consultant(int id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
     }
+
+    
 }

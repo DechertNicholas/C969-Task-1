@@ -562,21 +562,24 @@ namespace C969_Task_1
         }
 
         // consultants
-        public List<string> GetAllConsultants()
+        public List<Consultant> GetAllConsultants()
         {
             var conn = GetConnection();
 
-            var results = new List<string>();
+            var results = new List<Consultant>();
             try
             {
                 conn.Open();
                 
-                var query = "SELECT userName FROM user";
+                var query = "SELECT userId, userName FROM user";
                 var cmd = new MySqlCommand(query, conn);
                 var rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                 {
-                    results.Add(rdr[0].ToString());
+                    results.Add(new Consultant(
+                        int.Parse(rdr[0].ToString()),
+                        rdr[1].ToString())
+                        );
                 }
             }
             catch (MySqlException ex)
@@ -751,7 +754,43 @@ namespace C969_Task_1
             Console.WriteLine($"Deleted appointment with ID {apptId}");
         }
 
-        public List<Appointment> GetAppointmentsByConsultantId(int consultantId)
+        public Appointment AddAppointment(Customer customer, DateTime start, string type, string consultant)
+        {
+            var conn = GetConnection();
+            var nowDate = DateTime.UtcNow;
+            start = start.ToUniversalTime();
+            var appts = GetAllAppointments();
+            var apptId = appts.Count == 0 ? 1 : appts.Last().AppointmentId + 1;
+            var userId = GetAllConsultants().Where(c => c.Name == consultant).FirstOrDefault().Id;
+            var appt = new Appointment(apptId, customer.Id, userId, type, start, start.AddMinutes(30), nowDate, consultant, nowDate, consultant);
+            string title = "", desc = "", loc = "", contact = "", url = "";
+
+            try
+            {
+                conn.Open();
+
+                var query = $"INSERT INTO appointment VALUES ({appt.AppointmentId}, {customer.Id}, {userId}, '{title}', '{desc}', '{loc}', '{contact}', " +
+                    $"'{type}', '{url}', '{appt.Start:yyyy-MM-dd HH:mm:ss}', '{appt.End:yyyy-MM-dd HH:mm:ss}', '{appt.CreateDate:yyyy-MM-dd HH:mm:ss}', " + 
+                    $"'{appt.CreatedBy}', '{appt.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{appt.LastUpdateBy}')";
+
+                Console.WriteLine($"Executing Query:\n{query}");
+
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            return appt;
+        }
+
+        public List<Appointment> GetAppointmentsByConsultantName(string consultantName)
         {
             var conn = GetConnection();
             var appts = new List<Appointment>();
@@ -760,8 +799,8 @@ namespace C969_Task_1
             {
                 conn.Open();
 
-                var query = $"SELECT appointmentId, customerId, userId, type, start, end, createDate, createdBy, lastUpdate, lastUpdateBy FROM appointment" +
-                    $"WHERE userId = {consultantId}";
+                var query = $"SELECT appointmentId, customerId, userId, type, start, end, createDate, createdBy, lastUpdate, lastUpdateBy FROM appointment " +
+                    $"WHERE userId = (SELECT userId FROM user WHERE userName = '{consultantName}')";
                 Console.WriteLine($"Executing query: {query}");
                 var cmd = new MySqlCommand(query, conn);
                 var rdr = cmd.ExecuteReader();

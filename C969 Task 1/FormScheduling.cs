@@ -22,9 +22,7 @@ namespace C969_Task_1
         // Updated per each consultant, contains hours available to the specific selected consultant
         BindingList<string> AvailableHours = new BindingList<string>();
         // customer list for new appointments
-        //List<Customer> Customers = new List<Customer>();
         Dictionary<string, Customer> CustomerMappings = new Dictionary<string, Customer>();
-        List<string> CustomerNames = new List<string>();
         BindingList<Appointment> Appointments = new BindingList<Appointment>();
 
         bool AddingCustomer = false;
@@ -123,7 +121,7 @@ namespace C969_Task_1
 
         public void PopulateData()
         {
-            comboBoxConsultant.DataSource = Handler.GetAllConsultants();
+            comboBoxConsultant.DataSource = Handler.GetAllConsultants().Select(c => c.Name).ToList();
 
             // this is a quick lambda to generate a mapping of customer "id: names" to customer objects. I want to have a combobox dropdown to select the customer names
             // but also need the dictionary keys to be unique, which is why the id is prefixed. This would normally need a foreach loop
@@ -544,12 +542,62 @@ namespace C969_Task_1
 
                 ToggleEditableControls(AddingAppt, UISection.APPT);
                 buttonEditAppt.Enabled = false;
+                comboBoxTimeForAppt.DataSource = AvailableHours;
             }
             else
             {
-                // validate appt time doesn't overlap for this customer
+                // null validations
+                // valide basic appt data
+                if (comboBoxCustomerForAppt.SelectedItem == null)
+                {
+                    MessageBox.Show("Must select a customer for the appointment", "Missing customer selection", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                if (comboBoxConsultant.SelectedItem == null)
+                {
+                    // user has somehow selected no consultant to do the appointment
+                    MessageBox.Show("Please select a consultant for the appointment",
+                        "Missing consultant", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(textBoxApptType.Text))
+                {
+                    MessageBox.Show("Please write in an appointment type",
+                        "Missing appointment type", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // if the null validations pass, continue on
+
+                // cast data into the appropriate formats for validation and adding
+                var apptStartString = dateTimePickerForAppt.Value.ToString("yyyy-MM-dd");
+                apptStartString += $" {comboBoxTimeForAppt.SelectedItem}";
+                var apptStart = DateTime.ParseExact(apptStartString, "yyyy-MM-dd hh:mm tt", CultureInfo.InvariantCulture);
                 var key = comboBoxCustomerForAppt.SelectedItem.ToString();
                 var appts = Handler.GetAppointmentsByCustomerId(CustomerMappings[key].Id);
+
+                
+                if (null != appts.Where(a => a.Start == apptStart).FirstOrDefault())
+                {
+                    // an appointment for this customer in this timeslot already exists
+                    MessageBox.Show("Customer already has an appointment at this time.\nPlease schedule for a different time", 
+                        "Missing already has an appointment", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                if (apptStart < DateTime.Now)
+                {
+                    // appointment is scheduled for the past. This may be useful in some cases, so give an option to the user
+                    var choice = MessageBox.Show("This appointment is scheduled for some time in the past. Continue anyway?",
+                        "Appointment is in the past", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                    if (choice == DialogResult.Cancel)
+                    {
+                        return;
+                    }
+                }
+
+                // now we can add the appointment
+                var customer = Handler.GetCustomerById(CustomerMappings[key].Id);
+                Handler.AddAppointment(customer, apptStart, textBoxApptType.Text, comboBoxConsultant.SelectedItem.ToString());
 
 
                 // set our UI back to normal
@@ -560,7 +608,24 @@ namespace C969_Task_1
 
                 // Refresh customer data list
                 PopulateData();
+                PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
                 buttonEditAppt.Enabled = true;
+                comboBoxTimeForAppt.DataSource = OpenHours;
+            }
+        }
+
+        private void SetAvailableHours()
+        {
+            // reset available hours
+            AvailableHours.Clear();
+            var allAppts = Handler.GetAppointmentsByConsultantName(comboBoxConsultant.SelectedItem.ToString());
+            var todayAppts = allAppts.Where(a => a.Start.Date == dateTimePickerForAppt.Value.Date).ToList();
+            // set the consultant's available hours to all hours
+            OpenHours.ForEach(h => AvailableHours.Add(h));
+            // remove hours for any appointments the consultant has today
+            if (todayAppts.Count != 0)
+            {
+                todayAppts.ForEach(a => AvailableHours.Remove(a.Start.ToLocalTime().ToString("hh:mm tt")));
             }
         }
 
@@ -647,11 +712,22 @@ namespace C969_Task_1
                 // repopulate the customer data into the appropriate text fields
                 SelectAppointment();
                 buttonEditAppt.Enabled = true;
+                comboBoxTimeForAppt.DataSource = OpenHours;
             }
             else
             {
                 //RemoveAppt();
             }
+        }
+
+        private void comboBoxConsultant_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SetAvailableHours();
+        }
+
+        private void dateTimePickerForAppt_ValueChanged(object sender, EventArgs e)
+        {
+            SetAvailableHours();
         }
     }
 }

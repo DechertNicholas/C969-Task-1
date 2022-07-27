@@ -192,6 +192,7 @@ namespace C969_Task_1
             this.comboBoxConsultant.Name = "comboBoxConsultant";
             this.comboBoxConsultant.Size = new System.Drawing.Size(121, 21);
             this.comboBoxConsultant.TabIndex = 4;
+            this.comboBoxConsultant.SelectedIndexChanged += new System.EventHandler(this.comboBoxConsultant_SelectedIndexChanged);
             // 
             // dateTimePickerForAppt
             // 
@@ -199,6 +200,7 @@ namespace C969_Task_1
             this.dateTimePickerForAppt.Name = "dateTimePickerForAppt";
             this.dateTimePickerForAppt.Size = new System.Drawing.Size(205, 20);
             this.dateTimePickerForAppt.TabIndex = 2;
+            this.dateTimePickerForAppt.ValueChanged += new System.EventHandler(this.dateTimePickerForAppt_ValueChanged);
             // 
             // buttonRemoveCancelAppt
             // 
