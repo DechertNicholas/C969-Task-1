@@ -182,7 +182,7 @@ namespace C969_Task_1
             this.comboBoxCustomerForAppt.FormattingEnabled = true;
             this.comboBoxCustomerForAppt.Location = new System.Drawing.Point(6, 36);
             this.comboBoxCustomerForAppt.Name = "comboBoxCustomerForAppt";
-            this.comboBoxCustomerForAppt.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxCustomerForAppt.Size = new System.Drawing.Size(206, 21);
             this.comboBoxCustomerForAppt.TabIndex = 1;
             // 
             // comboBoxConsultant
@@ -208,6 +208,7 @@ namespace C969_Task_1
             this.buttonRemoveCancelAppt.TabIndex = 8;
             this.buttonRemoveCancelAppt.Text = "Remove/Cancel";
             this.buttonRemoveCancelAppt.UseVisualStyleBackColor = true;
+            this.buttonRemoveCancelAppt.Click += new System.EventHandler(this.buttonRemoveCancelAppt_Click);
             // 
             // buttonEditAppt
             // 

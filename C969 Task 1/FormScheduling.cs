@@ -22,7 +22,8 @@ namespace C969_Task_1
         // Updated per each consultant, contains hours available to the specific selected consultant
         BindingList<string> AvailableHours = new BindingList<string>();
         // customer list for new appointments
-        List<Customer> Customers = new List<Customer>();
+        //List<Customer> Customers = new List<Customer>();
+        Dictionary<string, Customer> CustomerMappings = new Dictionary<string, Customer>();
         List<string> CustomerNames = new List<string>();
         BindingList<Appointment> Appointments = new BindingList<Appointment>();
 
@@ -60,6 +61,9 @@ namespace C969_Task_1
 
         public void SetUIInitialState()
         {
+            buttonAddSaveAppt.Text = "Add";
+            buttonRemoveCancelAppt.Text = "Remove";
+
             buttonAddSaveCustomer.Text = "Add";
             buttonRemoveCancelCustomer.Text = "Remove";
         }
@@ -121,13 +125,11 @@ namespace C969_Task_1
         {
             comboBoxConsultant.DataSource = Handler.GetAllConsultants();
 
-            Customers = Handler.GetAllCustomers();
-
-            // this is a quick lambda to generate a list from one property of each element in a collection. This would normally need a foreach loop
+            // this is a quick lambda to generate a mapping of customer "id: names" to customer objects. I want to have a combobox dropdown to select the customer names
+            // but also need the dictionary keys to be unique, which is why the id is prefixed. This would normally need a foreach loop
             // and would take up around 4-5 lines of code, but can be easily consolidated into a single, readable line
-            CustomerNames = Customers.Select(c => c.CustomerName).ToList();
-
-            comboBoxCustomerForAppt.DataSource = CustomerNames;
+            CustomerMappings = Handler.GetAllCustomers().ToDictionary(x => $"{x.Id}: {x.CustomerName}", x => x);
+            comboBoxCustomerForAppt.DataSource = CustomerMappings.Keys.ToList();
         }
 
         public void PopulateApptTable(DateTime startDate, DateTime endDate)
@@ -175,7 +177,8 @@ namespace C969_Task_1
         {
             // I use a simple lambda here instead of a foreach loop to find the first matching customerId in the list of Customers
             // A foreach loop would use many more lines to do something very simple and easily understood
-            var customer = Customers.Where(c => c.Id == customerId).First();
+            var search = new Regex("^" + $"{customerId}" + ":");
+            var customer = CustomerMappings[CustomerMappings.Keys.Where(x => search.IsMatch(x)).First()];
             var address = Handler.GetAllAddresses().Where(a => a.AddressId == customer.AddressId).First();
             var city = Handler.GetAllCities().Where(c => c.CityId == address.CityId).First();
             var country = Handler.GetAllCountries().Where(c => c.CountryId == city.CountryId).First();
@@ -189,7 +192,7 @@ namespace C969_Task_1
 
             // This field is technically part of the appointment data, but it's easier to populate it here in the "CustomerData" section and should be the
             // only exception
-            comboBoxCustomerForAppt.SelectedIndex = comboBoxCustomerForAppt.Items.IndexOf(customer.CustomerName);
+            comboBoxCustomerForAppt.SelectedIndex = comboBoxCustomerForAppt.Items.IndexOf($"{customer.Id}: {customer.CustomerName}");
         }
 
         public void PopulateAppointmentData(Appointment appt)
@@ -284,6 +287,60 @@ namespace C969_Task_1
             //    // update our reference to the existing address
             //    return existingAddress;
             //}
+        }
+
+        private void RemoveCustomer()
+        {
+            // Button is remove
+            if (string.IsNullOrWhiteSpace(textBoxName.Text))
+            {
+                MessageBox.Show("Cannot delete an empty user", "No user selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            var choice = MessageBox.Show("Are you sure you want to delete this user?", "Confirm delete", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+            if (choice != DialogResult.OK)
+            {
+                return;
+            }
+
+            // this isn't the best way to select a unique customer, but it should be good enough for this
+            var row = dataGridViewAppts.SelectedRows[0];
+            // cust is where the selected appointmentId in row -> appointments -> customerId -> get customer
+            var apptId = int.Parse(row.Cells["AppointmentId"].Value.ToString());
+            var customerId = Appointments.Where(a => a.AppointmentId == apptId).Select(a => a.CustomerId).First();
+            var customer = Handler.GetCustomerById(customerId);
+            // find all appointments for this customer
+            var appointments = Handler.GetAppointmentsByCustomerId(customer.Id);
+
+            // Check if there are any appointments for the user in the database. They'll need to be deleted
+            if (appointments.Count != 0)
+            {
+                var apptString = "User has outstanding appointments. Confirm deletion:\n\n";
+                foreach (var appt in appointments)
+                {
+                    apptString += $"{appt.Type} - {appt.Start}\n";
+                }
+
+                choice = MessageBox.Show(apptString, "User has outstanding appointments", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+                if (choice != DialogResult.OK)
+                {
+                    return;
+                }
+            }
+
+            foreach (var appt in appointments)
+            {
+                Handler.DeleteAppointmentById(appt.AppointmentId);
+            }
+
+            Handler.DeleteCustomerById(customer.Id);
+
+            // need to refresh the local lists of appointments and customers
+            PopulateData();
+            //monthCalendarAppts_DateSelected(new object { }, new DateRangeEventArgs(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd));
+            PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
         }
 
         private void UpdateCustomer()
@@ -451,10 +508,10 @@ namespace C969_Task_1
                     Handler.AddCustomer(textBoxName.Text, address.AddressId, CurrentUser);
 
                     // set our UI back to normal
-                    EditingCustomer = false;
+                    AddingCustomer = false;
                     buttonAddSaveCustomer.Text = "Add";
                     buttonRemoveCancelCustomer.Text = "Remove";
-                    ToggleEditableControls(EditingCustomer, UISection.CUSTOMER);
+                    ToggleEditableControls(AddingCustomer, UISection.CUSTOMER);
 
                     // Refresh customer data list
                     PopulateData();
@@ -464,10 +521,46 @@ namespace C969_Task_1
                 {
                     MessageBox.Show(ex.Message, "Validation Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                finally
-                {
+            }
+        }
 
-                }
+        private void AddAppt()
+        {
+            if (AddingAppt == false)
+            {
+                // Not editing an appt, we're adding a new appt
+                // The button is meant to be clicked again to save
+                AddingAppt = true;
+
+                buttonAddSaveAppt.Text = "Save";
+                buttonRemoveCancelAppt.Text = "Cancel";
+
+                // Clear the text boxes for data entry
+                comboBoxCustomerForAppt.SelectedItem = null;
+                dateTimePickerForAppt.Value = DateTime.Now;
+                comboBoxTimeForAppt.SelectedIndex = 0;
+                comboBoxConsultant.SelectedItem = CurrentUser;
+                textBoxApptType.Text = null;
+
+                ToggleEditableControls(AddingAppt, UISection.APPT);
+                buttonEditAppt.Enabled = false;
+            }
+            else
+            {
+                // validate appt time doesn't overlap for this customer
+                var key = comboBoxCustomerForAppt.SelectedItem.ToString();
+                var appts = Handler.GetAppointmentsByCustomerId(CustomerMappings[key].Id);
+
+
+                // set our UI back to normal
+                AddingAppt = false;
+                buttonAddSaveAppt.Text = "Add";
+                buttonRemoveCancelAppt.Text = "Remove";
+                ToggleEditableControls(AddingAppt, UISection.APPT);
+
+                // Refresh customer data list
+                PopulateData();
+                buttonEditAppt.Enabled = true;
             }
         }
 
@@ -509,56 +602,7 @@ namespace C969_Task_1
             }
             else
             {
-                // Button is remove
-                if (string.IsNullOrWhiteSpace(textBoxName.Text))
-                {
-                    MessageBox.Show("Cannot delete an empty user", "No user selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                var choice = MessageBox.Show("Are you sure you want to delete this user?", "Confirm delete", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
-
-                if (choice != DialogResult.OK)
-                {
-                    return;
-                }
-
-                // this isn't the best way to select a unique customer, but it should be good enough for this
-                var row = dataGridViewAppts.SelectedRows[0];
-                // cust is where the selected appointmentId in row -> appointments -> customerId -> get customer
-                var apptId = int.Parse(row.Cells["AppointmentId"].Value.ToString());
-                var customerId = Appointments.Where(a => a.AppointmentId == apptId).Select(a => a.CustomerId).First();
-                var customer = Handler.GetCustomerById(customerId);
-                // find all appointments for this customer
-                var appointments = Handler.GetAppointmentsById(customer.Id);
-
-                // Check if there are any appointments for the user in the database. They'll need to be deleted
-                if (appointments.Count != 0)
-                {
-                    var apptString = "User has outstanding appointments. Confirm deletion:\n\n";
-                    foreach (var appt in appointments)
-                    {
-                        apptString += $"{appt.Type} - {appt.Start}\n";
-                    }
-
-                    choice = MessageBox.Show(apptString, "User has outstanding appointments", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
-
-                    if (choice != DialogResult.OK)
-                    {
-                        return;
-                    }
-                }
-
-                foreach (var appt in appointments)
-                {
-                    Handler.DeleteAppointmentById(appt.AppointmentId);
-                }
-
-                Handler.DeleteCustomerById(customer.Id);
-
-                // need to refresh the local lists of appointments and customers
-                PopulateData();
-                //monthCalendarAppts_DateSelected(new object { }, new DateRangeEventArgs(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd));
-                PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
+                RemoveCustomer();
             }
         }
 
@@ -576,52 +620,37 @@ namespace C969_Task_1
         // needs fixing
         private void buttonAddSaveAppt_Click(object sender, EventArgs e)
         {
-            if (EditingAppt == false)
+            // "save" can mean save the newly added customer, or save the updated customer data
+            if (EditingAppt)
             {
-                // Not editing an appointment, we're adding a new appointment
-                // The button is meant to be clicked again to save
-                EditingAppt = true;
-
-                buttonAddSaveAppt.Text = "Save";
-                buttonRemoveCancelAppt.Text = "Cancel";
-
-                comboBoxCustomerForAppt.SelectedItem = null;
-                dateTimePickerForAppt.Value = DateTime.Today;
-                comboBoxTimeForAppt.SelectedItem = null;
-                comboBoxConsultant.SelectedItem = null;
-                textBoxApptType.Text = null;
-
-                ToggleEditableControls(EditingAppt, UISection.APPT);
-                buttonEditAppt.Enabled = false;
+                //UpdateAppt();
             }
             else
             {
-                // Appointment is meant to be saved now
-                try
-                {
-                    // Actually this is for an appointment,not a customer
-                    //----------------------------------------------------------------------------------------------------
-                    // validate the data entered into the customer data field
-                    
-                    // validate
+                AddAppt();
+            }
+        }
 
-                    EditingCustomer = false;
-                    buttonAddSaveCustomer.Text = "Add";
-                    buttonRemoveCancelCustomer.Text = "Remove";
-                    ToggleEditableControls(EditingCustomer, UISection.CUSTOMER);
+        private void buttonRemoveCancelAppt_Click(object sender, EventArgs e)
+        {
+            if (EditingAppt || AddingAppt)
+            {
+                // Cancel an edit
+                EditingAppt = false;
+                AddingAppt = false;
 
-                    // Refresh customer data list
-                    PopulateData();
-                    buttonEditCustomer.Enabled = true;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Validation Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                finally
-                {
+                buttonAddSaveAppt.Text = "Add";
+                buttonRemoveCancelAppt.Text = "Remove";
 
-                }
+                ToggleEditableControls(EditingAppt, UISection.APPT);
+
+                // repopulate the customer data into the appropriate text fields
+                SelectAppointment();
+                buttonEditAppt.Enabled = true;
+            }
+            else
+            {
+                //RemoveAppt();
             }
         }
     }

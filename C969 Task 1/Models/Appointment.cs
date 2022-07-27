@@ -23,6 +23,20 @@ namespace C969_Task_1.Models
         {
 
         }
+
+        public Appointment(int appointmentId, int customerId, int userId, string type, DateTime start, DateTime end, DateTime createDate, string createdBy, DateTime lastUpdate, string lastUpdateBy)
+        {
+            AppointmentId = appointmentId;
+            CustomerId = customerId;
+            UserId = userId;
+            Type = type;
+            Start = start;
+            End = end;
+            CreateDate = createDate;
+            CreatedBy = createdBy;
+            LastUpdate = lastUpdate;
+            LastUpdateBy = lastUpdateBy;
+        }
     }
 
     public class UnvalidatedAppointment

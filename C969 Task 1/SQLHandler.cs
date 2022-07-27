@@ -681,12 +681,8 @@ namespace C969_Task_1
             return appts;
         }
 
-        public List<Appointment> GetAppointmentsById(int? customerId)
+        public List<Appointment> GetAppointmentsByCustomerId(int customerId)
         {
-            if (customerId == null)
-            {
-                throw new ArgumentNullException("customerId", "customerId cannot be null.");
-            }
             var appts = new List<Appointment>();
 
             var conn = GetConnection();
@@ -755,9 +751,45 @@ namespace C969_Task_1
             Console.WriteLine($"Deleted appointment with ID {apptId}");
         }
 
-        public void GetAppointmentsByConsultantId(int consultantId)
+        public List<Appointment> GetAppointmentsByConsultantId(int consultantId)
         {
+            var conn = GetConnection();
+            var appts = new List<Appointment>();
 
+            try
+            {
+                conn.Open();
+
+                var query = $"SELECT appointmentId, customerId, userId, type, start, end, createDate, createdBy, lastUpdate, lastUpdateBy FROM appointment" +
+                    $"WHERE userId = {consultantId}";
+                Console.WriteLine($"Executing query: {query}");
+                var cmd = new MySqlCommand(query, conn);
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    appts.Add(new Appointment(
+                        int.Parse(rdr[0].ToString()),
+                        int.Parse(rdr[1].ToString()),
+                        int.Parse(rdr[2].ToString()),
+                        rdr[3].ToString(),
+                        ((DateTime)rdr[4]).ToLocalTime(),
+                        ((DateTime)rdr[5]).ToLocalTime(),
+                        (DateTime)rdr[6],
+                        rdr[7].ToString(),
+                        (DateTime)rdr[8],
+                        rdr[9].ToString()
+                    ));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+            return appts;
         }
     }
 }
