@@ -681,6 +681,7 @@ namespace C969_Task_1
             }
 
             Console.WriteLine($"Got {appts.Count} appointments");
+            appts = new BindingList<Appointment>(appts.OrderBy(a => a.Start).ToList());
             return appts;
         }
 
@@ -772,6 +773,39 @@ namespace C969_Task_1
                 var query = $"INSERT INTO appointment VALUES ({appt.AppointmentId}, {customer.Id}, {userId}, '{title}', '{desc}', '{loc}', '{contact}', " +
                     $"'{type}', '{url}', '{appt.Start:yyyy-MM-dd HH:mm:ss}', '{appt.End:yyyy-MM-dd HH:mm:ss}', '{appt.CreateDate:yyyy-MM-dd HH:mm:ss}', " + 
                     $"'{appt.CreatedBy}', '{appt.LastUpdate:yyyy-MM-dd HH:mm:ss}', '{appt.LastUpdateBy}')";
+
+                Console.WriteLine($"Executing Query:\n{query}");
+
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            return appt;
+        }
+
+        public Appointment UpdateAppointment(Appointment appt, string consultant)
+        {
+            var conn = GetConnection();
+            var nowDate = DateTime.UtcNow;
+            appt.LastUpdate = nowDate;
+            appt.LastUpdateBy = consultant;
+
+            try
+            {
+                conn.Open();
+
+                var query = $"UPDATE appointment SET customerId = {appt.CustomerId}, userId = {appt.UserId}, " +
+                    $"type = '{appt.Type}', start = '{appt.Start:yyyy-MM-dd HH:mm:ss}', end = '{appt.End:yyyy-MM-dd HH:mm:ss}', " +
+                    $"lastUpdate = '{appt.LastUpdate:yyyy-MM-dd HH:mm:ss}', lastUpdateBy = '{appt.LastUpdateBy}'" +
+                    $"WHERE appointmentId = {appt.AppointmentId}";
 
                 Console.WriteLine($"Executing Query:\n{query}");
 

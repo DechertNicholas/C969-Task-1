@@ -92,6 +92,7 @@ namespace C969_Task_1
                     {
                         // I want these boxes to be read only until the user wants to edit the selected item, or add/delete an item
                         // Appointments
+
                         comboBoxCustomerForAppt.Enabled = state;
                         dateTimePickerForAppt.Enabled = state;
                         comboBoxTimeForAppt.Enabled = state;
@@ -577,7 +578,6 @@ namespace C969_Task_1
                 var key = comboBoxCustomerForAppt.SelectedItem.ToString();
                 var appts = Handler.GetAppointmentsByCustomerId(CustomerMappings[key].Id);
 
-                
                 if (null != appts.Where(a => a.Start == apptStart).FirstOrDefault())
                 {
                     // an appointment for this customer in this timeslot already exists
@@ -594,6 +594,13 @@ namespace C969_Task_1
                     {
                         return;
                     }
+                }
+                if (apptStart.DayOfWeek == DayOfWeek.Saturday || apptStart.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    // not open on weekends
+                    MessageBox.Show("Please schedule for a time that is not on the weekend",
+                        "Appointment scheduled for the weekend", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
 
                 // now we can add the appointment
@@ -647,6 +654,87 @@ namespace C969_Task_1
                 comboBoxTimeForAppt.SelectedItem = currentApptTime;
 
             }
+            else
+            {
+                // null validations
+                // valide basic appt data
+                if (comboBoxCustomerForAppt.SelectedItem == null)
+                {
+                    MessageBox.Show("Must select a customer for the appointment", "Missing customer selection", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                if (comboBoxConsultant.SelectedItem == null)
+                {
+                    // user has somehow selected no consultant to do the appointment
+                    MessageBox.Show("Please select a consultant for the appointment",
+                        "Missing consultant", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(textBoxApptType.Text))
+                {
+                    MessageBox.Show("Please write in an appointment type",
+                        "Missing appointment type", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // if the null validations pass, continue on
+
+                // cast data into the appropriate formats for validation and adding
+                var apptStartString = dateTimePickerForAppt.Value.ToString("yyyy-MM-dd");
+                apptStartString += $" {comboBoxTimeForAppt.SelectedItem}";
+                var apptStart = DateTime.ParseExact(apptStartString, "yyyy-MM-dd hh:mm tt", CultureInfo.InvariantCulture);
+                var key = comboBoxCustomerForAppt.SelectedItem.ToString();
+                var appts = Handler.GetAppointmentsByCustomerId(CustomerMappings[key].Id);
+
+                if (null != appts.Where(a => a.Start == apptStart).FirstOrDefault())
+                {
+                    // an appointment for this customer in this timeslot already exists
+                    MessageBox.Show("Customer already has an appointment at this time.\nPlease schedule for a different time",
+                        "Missing already has an appointment", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                if (apptStart < DateTime.Now)
+                {
+                    // appointment is scheduled for the past. This may be useful in some cases, so give an option to the user
+                    var choice = MessageBox.Show("This appointment is scheduled for some time in the past. Continue anyway?",
+                        "Appointment is in the past", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                    if (choice == DialogResult.Cancel)
+                    {
+                        return;
+                    }
+                }
+                if (apptStart.DayOfWeek == DayOfWeek.Saturday || apptStart.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    // not open on weekends
+                    MessageBox.Show("Please schedule for a time that is not on the weekend",
+                        "Appointment scheduled for the weekend", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // now we can add the appointment
+                var customer = Handler.GetCustomerById(CustomerMappings[key].Id);
+                var row = dataGridViewAppts.SelectedRows[0];
+                var appt = Appointments.Where(a => a.AppointmentId == int.Parse(row.Cells["AppointmentId"].Value.ToString())).First();
+                appt.Start = apptStart.ToUniversalTime();
+                appt.End = appt.Start.AddMinutes(30);
+                appt.Type = textBoxApptType.Text;
+                appt.CustomerId = customer.Id;
+                Handler.UpdateAppointment(appt, comboBoxConsultant.SelectedItem.ToString());
+
+
+                // set our UI back to normal
+                EditingAppt = false;
+                buttonAddSaveAppt.Text = "Add";
+                buttonRemoveCancelAppt.Text = "Remove";
+                ToggleEditableControls(EditingAppt, UISection.APPT);
+                dataGridViewAppts.Enabled = true;
+
+                // Refresh customer data list
+                PopulateData();
+                PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
+                buttonEditAppt.Enabled = true;
+                comboBoxTimeForAppt.DataSource = OpenHours;
+            }
         }
 
         private void SetAvailableHours()
@@ -663,9 +751,12 @@ namespace C969_Task_1
             // don't remove the current slot if we're editing the appt
             if (EditingAppt)
             {
+                var row = dataGridViewAppts.SelectedRows[0];
+                var appt = Appointments.Where(a => a.AppointmentId == int.Parse(row.Cells["AppointmentId"].Value.ToString())).First();
+
                 todayAppts.Remove(
-                    todayAppts.Where(a => a.Start == DateTime.ParseExact(
-                        currentApptSelection.TimeOfDay.ToString(), "hh:mm tt", CultureInfo.InvariantCulture))
+                    todayAppts.Where(a => a.Start.TimeOfDay == currentApptSelection.TimeOfDay)
+                    .Where(a => a.AppointmentId == appt.AppointmentId)
                     .FirstOrDefault()
                 );
             }
@@ -732,7 +823,6 @@ namespace C969_Task_1
             PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
         }
 
-        // needs fixing
         private void buttonAddSaveAppt_Click(object sender, EventArgs e)
         {
             // "save" can mean save the newly added customer, or save the updated customer data
