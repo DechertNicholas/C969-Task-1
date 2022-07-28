@@ -220,6 +220,7 @@ namespace C969_Task_1
             this.buttonEditAppt.TabIndex = 7;
             this.buttonEditAppt.Text = "Edit";
             this.buttonEditAppt.UseVisualStyleBackColor = true;
+            this.buttonEditAppt.Click += new System.EventHandler(this.buttonEditAppt_Click);
             // 
             // buttonAddSaveAppt
             // 

@@ -195,9 +195,10 @@ namespace C969_Task_1
 
         public void PopulateAppointmentData(Appointment appt)
         {
+            // set the appt data
+            comboBoxTimeForAppt.SelectedItem = appt.Start.ToString("hh:mm tt");
             dateTimePickerForAppt.Value = appt.Start;
             Console.WriteLine($"Time Slot: {appt.Start:hh:mm tt}");
-            comboBoxTimeForAppt.SelectedItem = appt.Start.ToString("hh:mm tt");
             textBoxApptType.Text = appt.Type;
         }
 
@@ -614,12 +615,61 @@ namespace C969_Task_1
             }
         }
 
+        private void UpdateAppt()
+        {
+            if (EditingAppt == false)
+            {
+                // Not editing an appt, we're adding a new appt
+                // The button is meant to be clicked again to save
+                EditingAppt = true;
+                // disable the DGV so that the user cannot select a different appointment
+                dataGridViewAppts.Enabled = false;
+                
+
+                buttonAddSaveAppt.Text = "Save";
+                buttonRemoveCancelAppt.Text = "Cancel";
+
+                // text boxes will stay the same
+
+                ToggleEditableControls(EditingAppt, UISection.APPT);
+                buttonEditAppt.Enabled = false;
+                // since this appt is being edited, the time slot will be free again. Add the time slot back in it's correct place
+                var currentApptTime = comboBoxTimeForAppt.SelectedItem.ToString();
+                var format = "hh:mm tt";
+                AvailableHours.Add(currentApptTime);
+                // using a quick lambda here 
+                AvailableHours = new BindingList<string>(
+                    AvailableHours
+                    .OrderBy(h => DateTime.ParseExact(h, format, CultureInfo.InvariantCulture))
+                    .ToList()
+                );
+                comboBoxTimeForAppt.DataSource = AvailableHours;
+                comboBoxTimeForAppt.SelectedItem = currentApptTime;
+
+            }
+        }
+
         private void SetAvailableHours()
         {
             // reset available hours
+            // if we're editing the appointment, we want to keep the current timeslot open
+            // DateTime.Now is only used to avoid a null compliation exception - it should not be used
+            var currentApptSelection = EditingAppt ? DateTime.ParseExact(comboBoxTimeForAppt.SelectedItem.ToString(), "hh:mm tt", CultureInfo.InvariantCulture) 
+                : DateTime.Now;
             AvailableHours.Clear();
             var allAppts = Handler.GetAppointmentsByConsultantName(comboBoxConsultant.SelectedItem.ToString());
             var todayAppts = allAppts.Where(a => a.Start.Date == dateTimePickerForAppt.Value.Date).ToList();
+
+            // don't remove the current slot if we're editing the appt
+            if (EditingAppt)
+            {
+                todayAppts.Remove(
+                    todayAppts.Where(a => a.Start == DateTime.ParseExact(
+                        currentApptSelection.TimeOfDay.ToString(), "hh:mm tt", CultureInfo.InvariantCulture))
+                    .FirstOrDefault()
+                );
+            }
+
             // set the consultant's available hours to all hours
             OpenHours.ForEach(h => AvailableHours.Add(h));
             // remove hours for any appointments the consultant has today
@@ -688,7 +738,7 @@ namespace C969_Task_1
             // "save" can mean save the newly added customer, or save the updated customer data
             if (EditingAppt)
             {
-                //UpdateAppt();
+                UpdateAppt();
             }
             else
             {
@@ -703,6 +753,7 @@ namespace C969_Task_1
                 // Cancel an edit
                 EditingAppt = false;
                 AddingAppt = false;
+                dataGridViewAppts.Enabled = true;
 
                 buttonAddSaveAppt.Text = "Add";
                 buttonRemoveCancelAppt.Text = "Remove";
@@ -710,9 +761,9 @@ namespace C969_Task_1
                 ToggleEditableControls(EditingAppt, UISection.APPT);
 
                 // repopulate the customer data into the appropriate text fields
+                comboBoxTimeForAppt.DataSource = OpenHours;
                 SelectAppointment();
                 buttonEditAppt.Enabled = true;
-                comboBoxTimeForAppt.DataSource = OpenHours;
             }
             else
             {
@@ -728,6 +779,11 @@ namespace C969_Task_1
         private void dateTimePickerForAppt_ValueChanged(object sender, EventArgs e)
         {
             SetAvailableHours();
+        }
+
+        private void buttonEditAppt_Click(object sender, EventArgs e)
+        {
+            UpdateAppt();
         }
     }
 }
