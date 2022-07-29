@@ -55,9 +55,13 @@ namespace C969_Task_1
         {
             CurrentUser = userName;
             Console.WriteLine($"Scheduling started as {CurrentUser}");
+            // I want the appointment to show up after the Scheduling form launches, but having this in the constructor 
+            // will cause this to execute before the form appears. So, just delay the task
+            Task.Delay(2000).ContinueWith(t => AlertUpcomingAppointments());
+            //AlertUpcomingAppointments();
         }
 
-        public void SetUIInitialState()
+        private void SetUIInitialState()
         {
             buttonAddSaveAppt.Text = "Add";
             buttonRemoveCancelAppt.Text = "Remove";
@@ -66,7 +70,7 @@ namespace C969_Task_1
             buttonRemoveCancelCustomer.Text = "Remove";
         }
 
-        public void AssignOpenHours()
+        private void AssignOpenHours()
         {
             var apptInterval = new TimeSpan(0, 30, 0); // 30 minute appointments
             var open = DateTime.ParseExact("07:00", "HH:mm", null); // 8 AM
@@ -120,7 +124,7 @@ namespace C969_Task_1
             }
         }
 
-        public void PopulateData()
+        private void PopulateData()
         {
             comboBoxConsultant.DataSource = Handler.GetAllConsultants().Select(c => c.Name).ToList();
 
@@ -131,7 +135,7 @@ namespace C969_Task_1
             comboBoxCustomerForAppt.DataSource = CustomerMappings.Keys.ToList();
         }
 
-        public void PopulateApptTable(DateTime startDate, DateTime endDate)
+        private void PopulateApptTable(DateTime startDate, DateTime endDate)
         {
             Appointments = Handler.GetAppointmentsByRange(startDate, endDate);
 
@@ -194,7 +198,7 @@ namespace C969_Task_1
             comboBoxCustomerForAppt.SelectedIndex = comboBoxCustomerForAppt.Items.IndexOf($"{customer.Id}: {customer.CustomerName}");
         }
 
-        public void PopulateAppointmentData(Appointment appt)
+        private void PopulateAppointmentData(Appointment appt)
         {
             // set the appt data
             comboBoxTimeForAppt.SelectedItem = appt.Start.ToString("hh:mm tt");
@@ -222,6 +226,28 @@ namespace C969_Task_1
 
             PopulateCustomerData(appt.CustomerId);
             PopulateAppointmentData(appt);
+        }
+
+        private void AlertUpcomingAppointments()
+        {
+            // where appt is for this consultant -> starts after the current time -> starts before 15 minutes from now
+            var upcomingAppts = Appointments.Where(a => a.UserId == Handler.GetAllConsultants().Where(c => c.Name == CurrentUser).First().Id)
+                .Where(a => a.Start >= DateTime.Now)
+                .Where(a => a.Start <= DateTime.Now.AddMinutes(15))
+                .ToList();
+            if (upcomingAppts.Count == 0)
+            {
+                return;
+            }
+
+            var alertString = "";
+            foreach (var appt in upcomingAppts)
+            {
+                alertString += $"{appt.Start.ToLocalTime()}: {Handler.GetCustomerById(appt.CustomerId).CustomerName} - {appt.Type}\n";
+            }
+
+            MessageBox.Show("You have the following upcoming appointments:\n" + alertString, "Upcoming appointments", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //var alertString = upcomingAppts.Select(a => $"{a.Start.ToLocalTime()}: {Handler.GetCustomerById(a.CustomerId).CustomerName} - {a.Type}\n").ToString();
         }
 
         private Country AddOrGetCountry(string countryName)
@@ -737,6 +763,22 @@ namespace C969_Task_1
             }
         }
 
+        private void RemoveAppt()
+        {
+            var choice = MessageBox.Show("Are you sure you want to delete this appointment?", "Confirm delete", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+            if (choice != DialogResult.OK)
+            {
+                return;
+            }
+
+            var row = dataGridViewAppts.SelectedRows[0];
+            // cust is where the selected appointmentId in row -> appointments -> customerId -> get customer
+            var apptId = int.Parse(row.Cells["AppointmentId"].Value.ToString());
+
+            Handler.DeleteAppointmentById(apptId);
+        }
+
         private void SetAvailableHours()
         {
             // reset available hours
@@ -857,7 +899,9 @@ namespace C969_Task_1
             }
             else
             {
-                //RemoveAppt();
+                RemoveAppt();
+                PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
+                SelectAppointment();
             }
         }
 

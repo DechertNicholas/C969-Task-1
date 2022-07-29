@@ -639,6 +639,31 @@ namespace C969_Task_1
             return appts;
         }
 
+        public void DeleteAppointmentById(int apptId)
+        {
+            var conn = GetConnection();
+
+            try
+            {
+                conn.Open();
+
+                var query = $"DELETE FROM appointment WHERE appointmentId = {apptId}";
+                Console.WriteLine($"Executing query: {query}");
+                var cmd = new MySqlCommand(query, conn);
+                var result = cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+            Console.WriteLine($"Deleted appointment with ID {apptId}");
+        }
+
         public BindingList<Appointment> GetAppointmentsByRange(DateTime startDate, DateTime endDate)
         {
             var appts = new BindingList<Appointment>();
@@ -728,31 +753,6 @@ namespace C969_Task_1
 
             Console.WriteLine($"Got {appts.Count} appointments");
             return appts;
-        }
-
-        public void DeleteAppointmentById(int apptId)
-        {
-            var conn = GetConnection();
-
-            try
-            {
-                conn.Open();
-
-                var query = $"DELETE FROM appointment WHERE appointmentId = {apptId}";
-                Console.WriteLine($"Executing query: {query}");
-                var cmd = new MySqlCommand(query, conn);
-                var result = cmd.ExecuteNonQuery();
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                conn.Close();
-            }
-
-            Console.WriteLine($"Deleted appointment with ID {apptId}");
         }
 
         public Appointment AddAppointment(Customer customer, DateTime start, string type, string consultant)
