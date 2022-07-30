@@ -20,7 +20,7 @@ namespace C969_Task_1
 
         public MySqlConnection GetConnection()
         {
-            string connStr = ConfigurationManager.ConnectionStrings["RQLDEV01"].ConnectionString;
+            string connStr = ConfigurationManager.ConnectionStrings["LocalHost"].ConnectionString;
             return new MySqlConnection(connStr);
         }
 
@@ -448,31 +448,12 @@ namespace C969_Task_1
             var customers = GetAllCustomers();
             var customerId = customers.Count == 0 ? 1 : customers.Last().Id + 1;
             var customer = new Customer(customerId, customerName, addressId, true, nowDate, user, nowDate, user);
-            //// transform the customerSet into the individual classes. Using 0 for the IDs as a placeholder, as no ID should ever be 0 in the database
-            //var country = new Country(0, customerSet.Country, nowDate, user, nowDate, user);
-            //var city = new City(0, customerSet.City, 0, nowDate, user, nowDate, user);
-            //var address = new Address(0, customerSet.Address, 0, customerSet.ZipCode, customerSet.PhoneNumber, nowDate, user, nowDate, user);
-            //var customer = new Customer(0, customerSet.Name, 0, true, nowDate, user, nowDate, user);
 
             try
             {
                 conn.Open();
 
-                // all fields could potentially be new when adding a customer, so each needs to be checked.
-
-                // a country name is globally unique, so checking by name should only ever find one unique result, or nothing
-                //var dbCountry =
-
-                //// city names can be duplicated once per country (in this implementation), so if one if found, it must have an associated countryId
-                //// the city name and country id will create a unique composite key
-                //var dbCity = GetAllCities().Where(c => c.CityName == city.CityName).Where(c => c.CountryId == dbCountry.CountryId).FirstOrDefault();
-                //dbCity ??= AddCity(city, user);
-
-                //// address is the same as city above. A composite key of address name and city id will be unique
-                //var dbAddress = GetAllAddresses().Where(a => a.AddressName == address.AddressName).Where(a => a.CityId == dbCity.CityId).FirstOrDefault();
-                //dbAddress ??= AddAddress(address, user);
-
-                // customer will be the same as address, with a composite key of name and addressId
+                // an existing customer will be the same as address, with a composite key of name and addressId
                 var dbCustomer = GetAllCustomers()
                     .Where(c => c.CustomerName == customer.CustomerName)
                     .Where(c => c.AddressId == customer.AddressId)
@@ -536,7 +517,6 @@ namespace C969_Task_1
             customer.LastUpdate = DateTime.UtcNow;
             customer.LastUpdateBy = user;
 
-            // declare here for returning later
             try
             {
                 conn.Open();

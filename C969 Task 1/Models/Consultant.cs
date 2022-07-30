@@ -20,6 +20,4 @@ namespace C969_Task_1.Models
             Name = name;
         }
     }
-
-    
 }

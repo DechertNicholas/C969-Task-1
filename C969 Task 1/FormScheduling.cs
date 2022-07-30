@@ -30,11 +30,6 @@ namespace C969_Task_1
         bool AddingAppt = false;
         bool EditingAppt = false;
 
-        //int SelectedCustomer = 0;
-        //int SelectedCustomerForAppt = 0;
-
-        //int SelectedAppt = 0;
-
         enum UISection {APPT, CUSTOMER, ALL}
 
         public FormScheduling()
@@ -48,7 +43,6 @@ namespace C969_Task_1
             // set the initial calendar state and appointment list state
             SelectDateRange();
             PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
-            //monthCalendarAppts_DateSelected(new object { }, new DateRangeEventArgs(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd));
         }
 
         public FormScheduling(string userName) : this()
@@ -58,7 +52,6 @@ namespace C969_Task_1
             // I want the appointment to show up after the Scheduling form launches, but having this in the constructor 
             // will cause this to execute before the form appears. So, just delay the task
             Task.Delay(2000).ContinueWith(t => AlertUpcomingAppointments());
-            //AlertUpcomingAppointments();
         }
 
         private void SetUIInitialState()
@@ -255,7 +248,6 @@ namespace C969_Task_1
             }
 
             MessageBox.Show("You have the following upcoming appointments:\n" + alertString, "Upcoming appointments", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //var alertString = upcomingAppts.Select(a => $"{a.Start.ToLocalTime()}: {Handler.GetCustomerById(a.CustomerId).CustomerName} - {a.Type}\n").ToString();
         }
 
         private Country AddOrGetCountry(string countryName)
@@ -266,17 +258,6 @@ namespace C969_Task_1
                 .FirstOrDefault();
 
             return existingCountry ?? Handler.AddCountry(countryName, CurrentUser);
-
-            //// if this is a new country, add it
-            //if (existingCountry == null)
-            //{
-            //    return Handler.AddCountry(countryName, CurrentUser);
-            //}
-            //else
-            //{
-            //    // update our reference to that existing country
-            //    return existingCountry;
-            //}
         }
 
         private City AddOrGetCity(string cityName, int countryId)
@@ -287,17 +268,6 @@ namespace C969_Task_1
                 .FirstOrDefault();
 
             return existingCity ?? Handler.AddCity(cityName, countryId, CurrentUser);
-
-            //// if no matching city name + countryId is found
-            //if (existingCity == null)
-            //{
-            //    return Handler.AddCity(cityName, countryId,  CurrentUser);
-            //}
-            //else
-            //{
-            //    // update our reference to city
-            //    return existingCity;
-            //}
         }
 
         private Address AddOrGetAddress(string addressName, int cityId, string postalCode, string phone)
@@ -310,17 +280,6 @@ namespace C969_Task_1
                 .FirstOrDefault();
 
             return existingAddress ?? Handler.AddAddress(addressName, cityId, postalCode, phone, CurrentUser);
-
-            //// if no matching address is found, add it
-            //if (existingAddress == null)
-            //{
-            //    return Handler.AddAddress(addressName, cityId, postalCode, phone, CurrentUser);
-            //}
-            //else
-            //{
-            //    // update our reference to the existing address
-            //    return existingAddress;
-            //}
         }
 
         private void RemoveCustomer()
@@ -373,7 +332,6 @@ namespace C969_Task_1
 
             // need to refresh the local lists of appointments and customers
             PopulateData();
-            //monthCalendarAppts_DateSelected(new object { }, new DateRangeEventArgs(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd));
             PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
         }
 
@@ -422,11 +380,6 @@ namespace C969_Task_1
                     var address = Handler.GetAddressById(customer.AddressId);
                     var city = Handler.GetCityById(address.CityId);
                     var country = Handler.GetCountryById(city.CountryId);
-
-                    // create a copy of originalCustomer that will be edited to hold the new data
-                    //var customer = new Customer(originalCustomer.Id, originalCustomer.CustomerName, originalCustomer.AddressId,
-                    //    originalCustomer.Active, originalCustomer.CreateDate, originalCustomer.CreatedBy, originalCustomer.LastUpdate,
-                    //    originalCustomer.LastUpdateBy);
 
                     // informs us if the record that relies on the changed record needs to be changed
                     // if country is changed, the new country may need to be added to the database, or gotten from the database
@@ -485,6 +438,7 @@ namespace C969_Task_1
 
                     // Refresh customer data list
                     PopulateData();
+                    PopulateApptTable(monthCalendarAppts.SelectionStart, monthCalendarAppts.SelectionEnd);
                     buttonEditCustomer.Enabled = true;
                 }
                 catch (Exception ex)

@@ -38,9 +38,4 @@ namespace C969_Task_1.Models
             LastUpdateBy = lastUpdateBy;
         }
     }
-
-    public class UnvalidatedAppointment
-    {
-
-    }
 }
