@@ -405,20 +405,23 @@ namespace C969_Task_1
             // numberOfAppointmentTypesByMonthToolStripMenuItem
             // 
             this.numberOfAppointmentTypesByMonthToolStripMenuItem.Name = "numberOfAppointmentTypesByMonthToolStripMenuItem";
-            this.numberOfAppointmentTypesByMonthToolStripMenuItem.Size = new System.Drawing.Size(288, 22);
-            this.numberOfAppointmentTypesByMonthToolStripMenuItem.Text = "number of appointment types by month";
+            this.numberOfAppointmentTypesByMonthToolStripMenuItem.Size = new System.Drawing.Size(246, 22);
+            this.numberOfAppointmentTypesByMonthToolStripMenuItem.Text = "Appointment Type by Month";
+            this.numberOfAppointmentTypesByMonthToolStripMenuItem.Click += new System.EventHandler(this.numberOfAppointmentTypesByMonthToolStripMenuItem_Click);
             // 
             // theScheduleForEachConsultantToolStripMenuItem
             // 
             this.theScheduleForEachConsultantToolStripMenuItem.Name = "theScheduleForEachConsultantToolStripMenuItem";
-            this.theScheduleForEachConsultantToolStripMenuItem.Size = new System.Drawing.Size(288, 22);
-            this.theScheduleForEachConsultantToolStripMenuItem.Text = "the schedule for each consultant";
+            this.theScheduleForEachConsultantToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.theScheduleForEachConsultantToolStripMenuItem.Text = "Consultant Schedule";
+            this.theScheduleForEachConsultantToolStripMenuItem.Click += new System.EventHandler(this.theScheduleForEachConsultantToolStripMenuItem_Click);
             // 
             // oneOtherTypeToolStripMenuItem
             // 
             this.oneOtherTypeToolStripMenuItem.Name = "oneOtherTypeToolStripMenuItem";
-            this.oneOtherTypeToolStripMenuItem.Size = new System.Drawing.Size(288, 22);
-            this.oneOtherTypeToolStripMenuItem.Text = "One other type";
+            this.oneOtherTypeToolStripMenuItem.Size = new System.Drawing.Size(252, 22);
+            this.oneOtherTypeToolStripMenuItem.Text = "Appointment Count by Customer";
+            this.oneOtherTypeToolStripMenuItem.Click += new System.EventHandler(this.oneOtherTypeToolStripMenuItem_Click);
             // 
             // groupBoxCalendarView
             // 

@@ -138,13 +138,20 @@ namespace C969_Task_1
         private void PopulateApptTable(DateTime startDate, DateTime endDate)
         {
             Appointments = Handler.GetAppointmentsByRange(startDate, endDate);
+            var customers = Handler.GetAllCustomers();
+            var consultants = Handler.GetAllConsultants();
 
             // I'm using a lambda here to select only columns I want into the dataGridVew, as it is much faster than creating a new model
             // and assigning the properties to the new model. Having the full appointment data in Appointments will still be useful,
             // since other existing properties will need to be available when an appointment is edited.
-            dataGridViewAppts.DataSource = Appointments.Select(a => new { a.AppointmentId, a.Start, a.End, a.Type, a.CreatedBy }).ToList();
+            dataGridViewAppts.DataSource = Appointments.Select(a => new { a.AppointmentId, a.Start, a.End, a.Type, 
+                customers.Where(c => c.Id == a.CustomerId).First().CustomerName,
+                consultants.Where(c => c.Id == a.UserId).First().Name})
+                .ToList();
             // Keep the appointmentId data, but don't show it
             dataGridViewAppts.Columns["AppointmentId"].Visible = false;
+            dataGridViewAppts.Columns["CustomerName"].HeaderText = "Customer";
+            dataGridViewAppts.Columns["Name"].HeaderText = "Consultant";
         }
 
         private void SelectDateRange()
@@ -201,6 +208,7 @@ namespace C969_Task_1
         private void PopulateAppointmentData(Appointment appt)
         {
             // set the appt data
+            comboBoxConsultant.SelectedItem = Handler.GetAllConsultants().Where(c => c.Id == appt.UserId).First().Name;
             comboBoxTimeForAppt.SelectedItem = appt.Start.ToString("hh:mm tt");
             dateTimePickerForAppt.Value = appt.Start;
             Console.WriteLine($"Time Slot: {appt.Start:hh:mm tt}");
@@ -557,6 +565,7 @@ namespace C969_Task_1
                 // Not editing an appt, we're adding a new appt
                 // The button is meant to be clicked again to save
                 AddingAppt = true;
+                dataGridViewAppts.Enabled = false;
 
                 buttonAddSaveAppt.Text = "Save";
                 buttonRemoveCancelAppt.Text = "Cancel";
@@ -631,11 +640,12 @@ namespace C969_Task_1
 
                 // now we can add the appointment
                 var customer = Handler.GetCustomerById(CustomerMappings[key].Id);
-                Handler.AddAppointment(customer, apptStart, textBoxApptType.Text, comboBoxConsultant.SelectedItem.ToString());
+                Handler.AddAppointment(customer, apptStart, textBoxApptType.Text, comboBoxConsultant.SelectedItem.ToString(), CurrentUser);
 
 
                 // set our UI back to normal
                 AddingAppt = false;
+                dataGridViewAppts.Enabled = true;
                 buttonAddSaveAppt.Text = "Add";
                 buttonRemoveCancelAppt.Text = "Remove";
                 ToggleEditableControls(AddingAppt, UISection.APPT);
@@ -706,17 +716,21 @@ namespace C969_Task_1
                 // if the null validations pass, continue on
 
                 // cast data into the appropriate formats for validation and adding
+                var row = dataGridViewAppts.SelectedRows[0];
+                var appt = Appointments.Where(a => a.AppointmentId == int.Parse(row.Cells["AppointmentId"].Value.ToString())).First();
                 var apptStartString = dateTimePickerForAppt.Value.ToString("yyyy-MM-dd");
                 apptStartString += $" {comboBoxTimeForAppt.SelectedItem}";
                 var apptStart = DateTime.ParseExact(apptStartString, "yyyy-MM-dd hh:mm tt", CultureInfo.InvariantCulture);
                 var key = comboBoxCustomerForAppt.SelectedItem.ToString();
                 var appts = Handler.GetAppointmentsByCustomerId(CustomerMappings[key].Id);
 
-                if (null != appts.Where(a => a.Start == apptStart).FirstOrDefault())
+                // the current appointment should be able to be scheduled for the current time
+                if (null != appts.Where(a => a.AppointmentId != appt.AppointmentId)
+                    .Where(a => a.Start == apptStart).FirstOrDefault())
                 {
                     // an appointment for this customer in this timeslot already exists
                     MessageBox.Show("Customer already has an appointment at this time.\nPlease schedule for a different time",
-                        "Missing already has an appointment", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        "Customer already has an appointment", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 if (apptStart < DateTime.Now)
@@ -739,13 +753,11 @@ namespace C969_Task_1
 
                 // now we can add the appointment
                 var customer = Handler.GetCustomerById(CustomerMappings[key].Id);
-                var row = dataGridViewAppts.SelectedRows[0];
-                var appt = Appointments.Where(a => a.AppointmentId == int.Parse(row.Cells["AppointmentId"].Value.ToString())).First();
                 appt.Start = apptStart.ToUniversalTime();
                 appt.End = appt.Start.AddMinutes(30);
                 appt.Type = textBoxApptType.Text;
                 appt.CustomerId = customer.Id;
-                Handler.UpdateAppointment(appt, comboBoxConsultant.SelectedItem.ToString());
+                Handler.UpdateAppointment(appt, comboBoxConsultant.SelectedItem.ToString(), CurrentUser);
 
 
                 // set our UI back to normal
@@ -810,6 +822,63 @@ namespace C969_Task_1
             {
                 todayAppts.ForEach(a => AvailableHours.Remove(a.Start.ToLocalTime().ToString("hh:mm tt")));
             }
+        }
+
+        private void ReportTypesByMonth()
+        {
+            // the appointments variable already has this info, just use that
+            var thisMonthAppts = Appointments.Where(a => a.Start.Date.Month == monthCalendarAppts.SelectionStart.Date.Month).ToList();
+            var types = thisMonthAppts.Select(a => a.Type).Distinct().ToList();
+            var apptString = "This month has the following number of appointment types:\n\n";
+            foreach (var type in types)
+            {
+                var count = thisMonthAppts.Where(a => a.Type == type).ToList().Count;
+                apptString += $"{type} - {count}\n";
+            }
+
+            MessageBox.Show(apptString, "Appointments by type", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ReportConsultantSchedule()
+        {
+            var reportString = "Consultant schedules for this month:\n\n";
+            var customers = Handler.GetAllCustomers();
+            var thisMonthAppts = Appointments.Where(a => a.Start.Date.Month == monthCalendarAppts.SelectionStart.Date.Month).ToList();
+            // consultant list will already contain unique values
+            var consultants = Handler.GetAllConsultants();
+            foreach (var consultant in consultants)
+            {
+                reportString += $"{consultant.Name}:\n";
+                var appts = Appointments.Where(a => a.UserId == consultant.Id).ToList();
+                if (appts.Count == 0)
+                {
+                    // using 4 spaces here as tabs (\t) are huge (8 spaces)
+                    reportString += "    Free!\n";
+                    continue;
+                }
+                // using 4 spaces here as tabs (\t) are huge (8 spaces)
+                appts.ForEach(a => reportString += $"    - {a.Start} {a.Type} with {customers.Where(c => c.Id == a.CustomerId).First().CustomerName}\n");
+            }
+
+            MessageBox.Show(reportString, "Consultant schedule", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ReportCustomersByMonth()
+        {
+            // the appointments variable already has this info, just use that
+            var thisMonthAppts = Appointments.Where(a => a.Start.Date.Month == monthCalendarAppts.SelectionStart.Date.Month).ToList();
+            var customers = Handler.GetAllCustomers();
+            var thisMonthCustomers = thisMonthAppts.Select(a => 
+                customers.Where(c => c.Id == a.CustomerId).Select(c => c).First()).Distinct().ToList();
+
+            var reportString = "Customers have the following number of appointments:\n\n";
+            foreach (var customer in thisMonthCustomers)
+            {
+                var count = thisMonthAppts.Where(a => a.CustomerId == customer.Id).ToList().Count;
+                reportString += $"{customer.CustomerName} - {count}\n";
+            }
+
+            MessageBox.Show(reportString, "Appointments by customer", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         // ui methods
@@ -918,6 +987,21 @@ namespace C969_Task_1
         private void buttonEditAppt_Click(object sender, EventArgs e)
         {
             UpdateAppt();
+        }
+
+        private void numberOfAppointmentTypesByMonthToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReportTypesByMonth();
+        }
+
+        private void theScheduleForEachConsultantToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReportConsultantSchedule();
+        }
+
+        private void oneOtherTypeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReportCustomersByMonth();
         }
     }
 }

@@ -755,7 +755,7 @@ namespace C969_Task_1
             return appts;
         }
 
-        public Appointment AddAppointment(Customer customer, DateTime start, string type, string consultant)
+        public Appointment AddAppointment(Customer customer, DateTime start, string type, string consultant, string currentUser)
         {
             var conn = GetConnection();
             var nowDate = DateTime.UtcNow;
@@ -763,7 +763,7 @@ namespace C969_Task_1
             var appts = GetAllAppointments();
             var apptId = appts.Count == 0 ? 1 : appts.Last().AppointmentId + 1;
             var userId = GetAllConsultants().Where(c => c.Name == consultant).FirstOrDefault().Id;
-            var appt = new Appointment(apptId, customer.Id, userId, type, start, start.AddMinutes(30), nowDate, consultant, nowDate, consultant);
+            var appt = new Appointment(apptId, customer.Id, userId, type, start, start.AddMinutes(30), nowDate, currentUser, nowDate, currentUser);
             string title = "", desc = "", loc = "", contact = "", url = "";
 
             try
@@ -791,12 +791,13 @@ namespace C969_Task_1
             return appt;
         }
 
-        public Appointment UpdateAppointment(Appointment appt, string consultant)
+        public Appointment UpdateAppointment(Appointment appt, string consultant, string currentUser)
         {
             var conn = GetConnection();
             var nowDate = DateTime.UtcNow;
+            appt.UserId = GetAllConsultants().Where(c => c.Name == consultant).First().Id;
             appt.LastUpdate = nowDate;
-            appt.LastUpdateBy = consultant;
+            appt.LastUpdateBy = currentUser;
 
             try
             {
