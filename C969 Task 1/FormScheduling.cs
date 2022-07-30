@@ -130,6 +130,19 @@ namespace C969_Task_1
 
         private void PopulateApptTable(DateTime startDate, DateTime endDate)
         {
+            // clear the existing controls
+            textBoxName.Text = string.Empty;
+            textBoxPhoneNumber.Text = string.Empty;
+            textBoxAddress.Text = string.Empty;
+            textBoxCity.Text = string.Empty;
+            textBoxZip.Text = string.Empty;
+            textBoxCountry.Text = string.Empty;
+
+            comboBoxCustomerForAppt.SelectedItem = string.Empty;
+            comboBoxTimeForAppt.SelectedItem = string.Empty;
+            comboBoxConsultant.SelectedItem = string.Empty;
+            textBoxApptType.Text = string.Empty;
+
             Appointments = Handler.GetAppointmentsByRange(startDate, endDate);
             var customers = Handler.GetAllCustomers();
             var consultants = Handler.GetAllConsultants();
@@ -339,6 +352,12 @@ namespace C969_Task_1
         {
             if (EditingCustomer == false)
             {
+                if (string.IsNullOrWhiteSpace(textBoxName.Text))
+                {
+                    MessageBox.Show("No customer selected", "No customer selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 // Not editing a customer, we're starting to edit a customer
                 // Save will need to be clicked to finish
                 EditingCustomer = true;
@@ -616,6 +635,12 @@ namespace C969_Task_1
         {
             if (EditingAppt == false)
             {
+                if (dataGridViewAppts.Rows.Count == 0)
+                {
+                    MessageBox.Show("No appointment selected", "No appointment selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 // Not editing an appt, we're adding a new appt
                 // The button is meant to be clicked again to save
                 EditingAppt = true;
@@ -731,6 +756,12 @@ namespace C969_Task_1
 
         private void RemoveAppt()
         {
+            if (dataGridViewAppts.Rows.Count == 0)
+            {
+                MessageBox.Show("No appointment selected", "No appointment selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             var choice = MessageBox.Show("Are you sure you want to delete this appointment?", "Confirm delete", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
 
             if (choice != DialogResult.OK)

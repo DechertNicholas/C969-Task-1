@@ -20,7 +20,8 @@ namespace C969_Task_1
 
         public MySqlConnection GetConnection()
         {
-            string connStr = ConfigurationManager.ConnectionStrings["LocalHost"].ConnectionString;
+            //string connStr = ConfigurationManager.ConnectionStrings["LocalHost"].ConnectionString;
+            string connStr = ConfigurationManager.ConnectionStrings["RQLDEV01"].ConnectionString;
             return new MySqlConnection(connStr);
         }
 
